@@ -7,13 +7,7 @@ print("NEODEN DOWN camera part size:" + length)
 
 var camera = machine.defaultHead.defaultCamera
 
-if length < 1.5:
-	camera.width = 256
-	camera.height = 256
-	camera.shiftX = 384
-	camera.shiftY = 384
-	print("NEODEN DOWN camera selected small")
-elif length < 3:
+if length < 3:
 	camera.width = 512
 	camera.height = 512
 	camera.shiftX = 256
