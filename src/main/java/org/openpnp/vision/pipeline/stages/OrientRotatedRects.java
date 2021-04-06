@@ -98,6 +98,14 @@ public class OrientRotatedRects extends CvStage {
         return null;
     }
     
+    private static double angleNorm(double val, double lim) {
+        double clip = lim * 2;
+        while (Math.abs(val) > lim) {
+            val += (val < 0.) ? clip : -clip;
+        }
+        return val;
+    }
+    
     private RotatedRect orient(RotatedRect r1) {
         RotatedRect r2 = (RotatedRect) r1.clone();
         if ((r2.size.height > r2.size.width && orientation == Orientation.Landscape) 
@@ -108,15 +116,16 @@ public class OrientRotatedRects extends CvStage {
             r2.angle -= 90;
         }
         if(orientation == Orientation.SnapToAngle){
-        	double angle = (r2.angle + 360) % 90.0;
-        	if(angle > 45) {
-        		angle -= 90;
-        	}
-        	else {
+        	double angle = angleNorm(r2.angle, 45);
+        	
+        	double angleDiff = angleNorm(angle-r2.angle,90);
+        	
+        	if( !(Math.abs(angleDiff) < 10)) {
                 double tmp = r2.size.height;
                 r2.size.height = r2.size.width;
                 r2.size.width = tmp;
         	}
+        	
         	r2.angle = angle + snapAngle;
         }
         if (negateAngle) {
