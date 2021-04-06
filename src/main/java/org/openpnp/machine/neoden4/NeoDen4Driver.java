@@ -108,6 +108,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     @Attribute(required = false)
     protected int connectWaitTimeMilliseconds = 3000;
 
+    protected boolean isAlreadyHomed = false;
+    
     
 //    @Deprecated
     @Attribute(required = false)
@@ -360,6 +362,15 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     
     @Override
     public void home(ReferenceMachine machine) throws Exception {
+    	
+    	 globalOffsetX = 0;
+    	 globalOffsetY = 0;
+    	
+    	//comment this to force neoden home every time
+    	if(isAlreadyHomed) {
+    		return;
+    	}
+    	
         /* Make sure *all* nozzles are up before moving */ 
         moveZ(1, 0);
         moveZ(2, 0);
@@ -396,6 +407,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         
         this.x = homeLocation.getCoordinate(homeLocation.getAxis(this, Axis.Type.X), units);
         this.y = homeLocation.getCoordinate(homeLocation.getAxis(this, Axis.Type.Y), units);
+        
+        isAlreadyHomed = true;
       
     }
 
