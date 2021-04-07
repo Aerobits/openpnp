@@ -439,7 +439,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 
     
     private void retractNozzles() throws Exception {
-    	if(this.z1 >= 0 || this.z2 >= 0 || this.z3 >= 0  || this.z4 >= 0) {
+    	if(this.z1 < 0 || this.z2 < 0 || this.z3 < 0  || this.z4 < 0) {
             moveZ(1, 0);
             moveZ(2, 0);
             moveZ(3, 0);
