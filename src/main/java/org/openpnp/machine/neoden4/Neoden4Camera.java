@@ -105,6 +105,8 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
 	    return imageOut;  
     }
     
+    private int lastWidth = 0;
+    
     @Override
     public synchronized BufferedImage internalCapture() {
         //Logger.trace(String.format("internalCapture() [cameraId:%d]", cameraId));
@@ -132,8 +134,12 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
             
             
         	if(tryCapture) {
-        		setCameraLt();
-        		setCameraWidthHeight();
+        		if(lastWidth != width) {
+        			cameraReset();
+	        		setCameraLt();
+	        		setCameraWidthHeight();
+	        		lastWidth = width;
+        		}
         		snapshotURI = getImageReadAsyURL();
 	            BufferedImage img = ImageIO.read(snapshotURI);
 	            
