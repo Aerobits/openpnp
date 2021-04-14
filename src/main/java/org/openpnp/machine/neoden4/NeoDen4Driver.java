@@ -487,6 +487,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         putInt32((int) (y*scaleFactorY * 100), b, 4);
         writeWithChecksum(b);
       
+        Thread.sleep(10);
+        
         pollFor(0x08, 0x4d);
 
         if (! waitForStatusReady(100, 30000)) {
@@ -552,9 +554,18 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     
     private void releaseCMotors()  throws Exception{
     	moveC(0,0);
+    	
+    	//This will force nozzle to move on next MoveTo
+    	this.c1 = 360;
+    	this.c2 = 360;
+    	this.c3 = 360;
+    	this.c4 = 360;
     }
     
     private void moveC(int nozzle, double c) throws Exception {
+    	
+    	Logger.debug("Move C");
+    	
         write(0x41);
         expect(0x0d);
         
