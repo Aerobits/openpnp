@@ -377,7 +377,6 @@ public class JobPlacementsPanel extends JPanel {
         tableSorter.setRowFilter(RowFilter.andFilter(filters));
     }
     
-    
     public void setBoardLocation(BoardLocation boardLocation) {
         this.boardLocation = boardLocation;
         if (boardLocation == null) {

@@ -1,5 +1,7 @@
 package org.openpnp.machine.reference.vision;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +14,7 @@ import java.util.Set;
 
 import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.io.IOUtils;
 import org.opencv.core.KeyPoint;
@@ -92,6 +95,7 @@ public class ReferenceFiducialLocator implements FiducialLocator {
         Location savedBoardLocation = boardLocation.getLocation();
         AffineTransform savedPlacementTransform = boardLocation.getPlacementTransform();
        
+        // TODO: Is it really neccesasry? We have fiducials as placements
         if (checkPanel) {
             Panel panel = MainFrame.get().getJobTab().getJob().getPanels()
                     .get(boardLocation.getPanelId());
@@ -306,7 +310,7 @@ public class ReferenceFiducialLocator implements FiducialLocator {
      * @return
      * @throws Exception
      */
-    private Location getFiducialLocation(BoardLocation boardLocation, Placement fid)
+    public Location getFiducialLocation(BoardLocation boardLocation, Placement fid)
             throws Exception {
         Logger.debug("Locating {}", fid.getId());
 
@@ -321,7 +325,7 @@ public class ReferenceFiducialLocator implements FiducialLocator {
 
         return getFiducialLocation(location, part);
     }
-    
+
     private Location getFiducialLocation(Location location, Part part) throws Exception {
         Camera camera = Configuration.get().getMachine().getDefaultHead().getDefaultCamera();
 
@@ -446,11 +450,12 @@ public class ReferenceFiducialLocator implements FiducialLocator {
         Board board = boardLocation.getBoard();
         IdentifiableList<Placement> fiducials = new IdentifiableList<>();
         for (Placement placement : board.getPlacements()) {
-            if (placement.getType() == Type.Fiducial
-                    && placement.getSide() == boardLocation.getSide()
-                    && placement.isEnabled()) {
-                fiducials.add(placement);
-            }
+        	if (placement.getType() == Type.Fiducial 
+        			&& placement.getSide() == boardLocation.getSide() 
+        			&& placement.isEnabled()) {
+        		fiducials.add(placement);
+        	}
+
         }
         return fiducials;
     }
