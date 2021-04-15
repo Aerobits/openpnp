@@ -81,6 +81,7 @@ public class JobPlacementsPanel extends JPanel {
     private JobPanel jobPanel;
 
     private static Color typeColorFiducial = new Color(157, 188, 255);
+    private static Color typeColorFiducialManual = new Color(138, 238, 255);
     private static Color typeColorPlacement = new Color(255, 255, 255);
     private static Color statusColorWarning = new Color(252, 255, 157);
     private static Color statusColorReady = new Color(157, 255, 168);
@@ -119,7 +120,8 @@ public class JobPlacementsPanel extends JPanel {
         JComboBox<Side> sidesComboBox = new JComboBox(Side.values());
         // Note we don't use Type.values() here because there are a couple Types that are only
         // there for backwards compatibility and we don't want them in the list.
-        JComboBox<Type> typesComboBox = new JComboBox(new Type[] { Type.Placement, Type.Fiducial });
+        JComboBox<Type> typesComboBox = new JComboBox(new Type[] { 
+        		Type.Placement, Type.Fiducial, Type.Fiducial_Manual });
         JComboBox<Type> errorHandlingComboBox = new JComboBox(ErrorHandling.values());
         
                 setLayout(new BorderLayout(0, 0));
@@ -771,6 +773,11 @@ public class JobPlacementsPanel extends JPanel {
                 setBorder(new LineBorder(getBackground()));
                 setForeground(Color.black);
                 setBackground(typeColorFiducial);
+            }
+            else if (type == Type.Fiducial_Manual) {
+                setBorder(new LineBorder(getBackground()));
+                setForeground(Color.black);
+                setBackground(typeColorFiducialManual);
             }
             else if (type == Type.Placement) {
                 setBorder(new LineBorder(getBackground()));

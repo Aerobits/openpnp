@@ -37,6 +37,7 @@ public class Placement extends AbstractModelObject implements Identifiable {
     public enum Type {
         Placement, 
         Fiducial,
+        Fiducial_Manual,
         @Deprecated
         Place, 
         @Deprecated
