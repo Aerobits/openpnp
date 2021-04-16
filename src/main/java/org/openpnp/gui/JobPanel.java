@@ -153,7 +153,7 @@ public class JobPanel extends JPanel {
                 new ActionGroup(removeBoardAction, captureCameraBoardLocationAction,
                         captureToolBoardLocationAction, moveCameraToBoardLocationAction,
                         moveCameraToBoardLocationNextAction, moveToolToBoardLocationAction,
-                        twoPointLocateBoardLocationAction, fiducialCheckAction, panelizeAction,
+                        twoPointLocateBoardLocationAction, panelizeAction,
                         setEnabledAction,setCheckFidsAction, setSideAction);
         singleSelectionActionGroup.setEnabled(false);
         
@@ -360,6 +360,7 @@ public class JobPanel extends JPanel {
         JButton btnFiducialCheck = new JButton(fiducialCheckAction);
         toolBarBoards.add(btnFiducialCheck);
         btnFiducialCheck.setHideActionText(true);
+        btnFiducialCheck.setVisible(false);
         toolBarBoards.addSeparator();
         JButton btnPanelize = new JButton(panelizeAction);
         toolBarBoards.add(btnPanelize);
@@ -1324,9 +1325,9 @@ public class JobPanel extends JPanel {
     public final Action twoPointLocateBoardLocationAction = new AbstractAction() {
         {
             putValue(SMALL_ICON, Icons.twoPointLocate);
-            putValue(NAME, Translations.getString("JobPanel.Action.Job.Board.TwoPointBoardLocation")); //$NON-NLS-1$
+            putValue(NAME, Translations.getString("JobPanel.Action.Job.Board.MultiFiducialBoardLocation")); //$NON-NLS-1$
             putValue(SHORT_DESCRIPTION,
-                    Translations.getString("JobPanel.Action.Job.Board.TwoPointBoardLocation.Description")); //$NON-NLS-1$
+                    Translations.getString("JobPanel.Action.Job.Board.MultiFiducialBoardLocation.Description")); //$NON-NLS-1$
         }
 
         @Override

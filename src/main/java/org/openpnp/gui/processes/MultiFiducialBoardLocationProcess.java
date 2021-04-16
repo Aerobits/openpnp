@@ -88,9 +88,7 @@ public class MultiFiducialBoardLocationProcess {
         this.jobPanel = jobPanel;
         this.camera = MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
 
-        boardLocations = jobPanel.getSelections();
-        MessageBoxes.infoBox("SELECTED BOARDS", boardLocations.toString());
-        
+        boardLocations = jobPanel.getSelections();        
         step = 1;
         idxCurrentBoard = 0;
         
