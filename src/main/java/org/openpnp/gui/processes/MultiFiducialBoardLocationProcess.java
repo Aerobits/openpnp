@@ -57,10 +57,11 @@ public class MultiFiducialBoardLocationProcess {
     private final JobPanel jobPanel;
     private final Camera camera;
 
-    private int step = 0;
-    
+    private int step = 1;
+
+    private boolean isInstrucionShown;
+    private Location currentMeasuredLocation;
     private Placement currentPlacement;
-    private String placementId;
     private List<Placement> placements;
     private List<Location> expectedLocations;
     private List<Location> measuredLocations;
@@ -86,9 +87,11 @@ public class MultiFiducialBoardLocationProcess {
         this.jobPanel = jobPanel;
         this.camera =
                 MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
+
+        isInstrucionShown = false;
         
+    	currentMeasuredLocation = new Location(LengthUnit.Millimeters);
         currentPlacement = new Placement("");
-        placementId = "";
         expectedLocations = new ArrayList<Location>();
         measuredLocations = new ArrayList<Location>();
         
@@ -121,14 +124,14 @@ public class MultiFiducialBoardLocationProcess {
     private void advance() {
         boolean stepResult = true;
         
-        if (step == 0) {
-            stepResult = step1();
-        }
-        else if (step == 1) {
-            stepResult = step2();
+        if (step == 1) {
+            stepResult = step1(); // INIT
         }
         else if (step == 2) {
-            stepResult = step3();
+            stepResult = step2(); // MEASURE LOCATION
+        }
+        else if (step == 3) {
+            stepResult = step3(); // CALCULATE TRANSFORM
         }
 
         if (!stepResult) {
@@ -136,24 +139,49 @@ public class MultiFiducialBoardLocationProcess {
         }
         
         step++;
+
+        String title = "";
+        String instructions = "";
+        String btnProceedText = "";
+        boolean btnProceedVisible = true;
         
-//        if (currentPlacement.getType() == Type.Fiducial) {
-//            Logger.error("Fiducial");
-//        	  step2();
-//        }
+        switch(step) {
+	        case 1:
+	        case 2: {
+	        	 if (currentPlacement.getType() == Type.Fiducial_Manual) {
+	 	        	title = "Set correct part location"; 
+	 	        	instructions = String.format("Move camera to '%s'. location", currentPlacement.getId());
+		        	btnProceedVisible = true;
+		        	btnProceedText = "Done";
+	        	 } else {
+	 	        	title = "Wait"; 
+	 	        	instructions = "Fiducial is being automatically located...";
+		        	 btnProceedVisible = false;
+	        	 }
+	        	break;
+	        }
+	        case 3: {
+	        	title = "Done!"; 
+	        	instructions = "Click apply to apply transform";
+	        	btnProceedText = "Apply";
+	        	btnProceedVisible = true;
+	        	break;
+	        }
+        }
         
-        if (step == 3) {
-            mainFrame.hideInstructions();
+        
+        if (step == 4) {
+        	if (isInstrucionShown) {
+                mainFrame.hideInstructions();
+        		isInstrucionShown = false;
+        	}
         }
         else {
-            String title = step == 2 ? "Done!" : "Set correct part location";
-            String instructions = step == 2 ? "" : String.format("Move camera to '%s'.", currentPlacement.getId());
-            String btnText = step == 2 ? "Finish" : "Next";
-            
             mainFrame.showInstructions(
-            		title, instructions, true, step == 3 ? false : true, btnText, 
+            		title, instructions, true, btnProceedVisible, btnProceedText,
             		cancelActionListener, proceedActionListener
             );
+            isInstrucionShown = true;
         }
     }
     
@@ -170,58 +198,55 @@ public class MultiFiducialBoardLocationProcess {
 
         nPlacements = placements.size();
         if (nPlacements < 2) {
-            MessageBoxes.errorBox(mainFrame, "Error", "Please select at least two placements.");
+            MessageBoxes.errorBox(mainFrame, "Error", "Board must have at least two placements.");
             return false;
         }
         
         //Optimize the visit order of the placements
         placements = optimizePlacementOrder(placements);
-
-        //Move the camera near the first placement's location
-        UiUtils.submitUiMachineTask(() -> {
-            Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
-                    placements.get(0).getLocation() );
-            MovableUtils.moveToLocationAtSafeZ(camera, location);
-            MovableUtils.fireTargetedUserAction(camera);
-        });
-        
+    
         //Get ready for the first placement
         idxPlacement = 0;
     	currentPlacement = placements.get(idxPlacement);
-        placementId = placements.get(0).getId();
         expectedLocations.add(placements.get(0).getLocation()
                 .invert(boardSide==Side.Bottom, false, false, false));
+        
+
+        //Move the camera near the first placement's location        
+        if (currentPlacement.getType() == Type.Fiducial) {
+            UiUtils.submitUiMachineTask(() -> {
+	    		try {
+	    			currentMeasuredLocation = fiducialLocator.getFiducialLocation(boardLocation, currentPlacement);
+	    			advance();
+				} 
+	    		catch (Exception e) { 
+	    			e.printStackTrace();
+	    			MessageBoxes.errorBox(mainFrame, "Error", e.getMessage());
+				}
+            });
+        } else {
+            UiUtils.submitUiMachineTask(() -> {
+                Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
+                        placements.get(0).getLocation() );
+                MovableUtils.moveToLocationAtSafeZ(camera, location);
+                MovableUtils.fireTargetedUserAction(camera);
+            });
+        }
         
         return true;
     }
 
     private boolean step2() {
     	
-    	Location measuredLocation = null;
-
     	// Type.Fiducial 		-> let fiducialLocator find location
-    	// Type.Fiducial_Manual -> let user set correct location
+    	// Type.Fiducial_Manual	-> let user set correct location
     	
-    	if (currentPlacement.getType() == Type.Fiducial) {
-    		try {
-    			measuredLocation = fiducialLocator.getFiducialLocation(boardLocation, currentPlacement);
-			} 
-    		catch (Exception e) { 
-    			e.printStackTrace();
-    			MessageBoxes.errorBox(mainFrame, "Error", e.getMessage());
-			}
-    	}
-    	else { // Fiducial_Manual
-            measuredLocation = camera.getLocation();
+    	if (currentPlacement.getType() == Type.Fiducial_Manual) {
+    		currentMeasuredLocation = camera.getLocation();
     	}
     	
-    	
-        //Save the result of the current placement measurement
-        if (measuredLocation == null) {
-            MessageBoxes.errorBox(mainFrame, "Error", "Please position the camera.");
-            return false;
-        }
-        measuredLocations.add(measuredLocation);
+        // Save the result of the current placement measurement
+        measuredLocations.add(currentMeasuredLocation);
         
         //Move on the the next placement
         idxPlacement++;
@@ -231,73 +256,85 @@ public class MultiFiducialBoardLocationProcess {
             
             //Get ready for the next placement
         	currentPlacement = placements.get(idxPlacement);
-            placementId = placements.get(idxPlacement).getId();
             expectedLocations.add(placements.get(idxPlacement).getLocation()
                     .invert(boardSide==Side.Bottom, false, false, false));
+
             
             //Move the camera near the next placement's expected location
-            UiUtils.submitUiMachineTask(() -> {
-                Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
-                        placements.get(idxPlacement).getLocation() );
-                MovableUtils.moveToLocationAtSafeZ(camera, location);
-                MovableUtils.fireTargetedUserAction(camera);
-            });
-            
+            if (currentPlacement.getType() == Type.Fiducial) {
+                UiUtils.submitUiMachineTask(() -> {
+    	    		try {
+    	    			currentMeasuredLocation = fiducialLocator.getFiducialLocation(boardLocation, currentPlacement);
+    	    			advance();
+    				} 
+    	    		catch (Exception e) { 
+    	    			e.printStackTrace();
+    	    			MessageBoxes.errorBox(mainFrame, "Error", e.getMessage());
+    				}
+                });
+            } else {
+                UiUtils.submitUiMachineTask(() -> {
+                    Location location = Utils2D.calculateBoardPlacementLocation(boardLocation, currentPlacement.getLocation());
+                    MovableUtils.moveToLocationAtSafeZ(camera, location);
+                    MovableUtils.fireTargetedUserAction(camera);
+                });
+            }
+
             //keep repeating step2 until all placements have been measured
             step--;
         } 
-        else {
-            //All the placements have been visited, so set final board location and placement transform
-            setBoardLocationAndPlacementTransform();
-            
-            //Refresh the job panel so that the new board location is visible
-            jobPanel.refreshSelectedRow();           
-            
-            //Check the results to make sure they are valid
-            double boardOffset = boardLocation.getLocation().convertToUnits(LengthUnit.Millimeters).getLinearDistanceTo(savedBoardLocation);
-            Logger.info("Board origin offset distance: " + boardOffset + " mm");
-           
-            Utils2D.AffineInfo ai = Utils2D.affineInfo(boardLocation.getPlacementTransform());
-            Logger.info("Placement affine transform: " + ai);
-            
-            String errString = "";
-            if (Math.abs(ai.xScale-1) > props.scalingTolerance) {
-                errString += "x scaling = " + String.format("%.5f", ai.xScale) + " which is outside the expected range of [" +
-                        String.format("%.5f", 1-props.scalingTolerance) + ", " + String.format("%.5f", 1+props.scalingTolerance) + "], ";
-            }
-            if (Math.abs(ai.yScale-1) > props.scalingTolerance) {
-                errString += "y scaling = " + String.format("%.5f", ai.yScale) + " which is outside the expected range of [" +
-                        String.format("%.5f", 1-props.scalingTolerance) + ", " + String.format("%.5f", 1+props.scalingTolerance) + "], ";
-            }
-            if (Math.abs(ai.xShear) > props.shearingTolerance) {
-                errString += "x shearing = " + String.format("%.5f", ai.xShear) + " which is outside the expected range of [" +
-                        String.format("%.5f", -props.shearingTolerance) + ", " + String.format("%.5f", props.shearingTolerance) + "], ";
-            }
-            if (boardOffset > props.boardLocationTolerance.convertToUnits(LengthUnit.Millimeters).getValue()) {
-                errString += "the board origin moved " + String.format("%.4f", boardOffset) +
-                        "mm which is greater than the allowed amount of " +
-                        String.format("%.4f", props.boardLocationTolerance.convertToUnits(LengthUnit.Millimeters).getValue()) + "mm, ";
-            }
-            if (errString.length() > 0) {
-                errString = errString.substring(0, errString.length()-2); //strip off the last comma and space
-                MessageBoxes.errorBox(mainFrame, "Error", "Results invalid because " + errString + "; double check to ensure you are " +
-                        "jogging the camera to the correct placements.  Other potential remidies include " +
-                        "setting the initial board X, Y, Z, and Rotation in the Boards panel; using a different set of placements; " +
-                        "or changing the allowable tolerances in the MultiPlacementBoardLocationProperties section of machine.xml.");
-                cancel();
-                return false;
-            }
-            
-        }
+        
         return true;
     }
 
     private boolean step3() {
-        UiUtils.submitUiMachineTask(() -> {
+    	//Move machine to board origin
+    	UiUtils.submitUiMachineTask(() -> {
             Location location = jobPanel.getSelection().getLocation();
             MovableUtils.moveToLocationAtSafeZ(camera, location);
             MovableUtils.fireTargetedUserAction(camera);
         });
+        
+        //All the placements have been visited, so set final board location and placement transform
+        setBoardLocationAndPlacementTransform();
+        
+        //Refresh the job panel so that the new board location is visible
+        jobPanel.refreshSelectedRow();           
+        
+        //Check the results to make sure they are valid
+        double boardOffset = boardLocation.getLocation().convertToUnits(LengthUnit.Millimeters).getLinearDistanceTo(savedBoardLocation);
+        Logger.info("Board origin offset distance: " + boardOffset + " mm");
+       
+        Utils2D.AffineInfo ai = Utils2D.affineInfo(boardLocation.getPlacementTransform());
+        Logger.info("Placement affine transform: " + ai);
+        
+        String errString = "";
+        if (Math.abs(ai.xScale-1) > props.scalingTolerance) {
+            errString += "x scaling = " + String.format("%.5f", ai.xScale) + " which is outside the expected range of [" +
+                    String.format("%.5f", 1-props.scalingTolerance) + ", " + String.format("%.5f", 1+props.scalingTolerance) + "], ";
+        }
+        if (Math.abs(ai.yScale-1) > props.scalingTolerance) {
+            errString += "y scaling = " + String.format("%.5f", ai.yScale) + " which is outside the expected range of [" +
+                    String.format("%.5f", 1-props.scalingTolerance) + ", " + String.format("%.5f", 1+props.scalingTolerance) + "], ";
+        }
+        if (Math.abs(ai.xShear) > props.shearingTolerance) {
+            errString += "x shearing = " + String.format("%.5f", ai.xShear) + " which is outside the expected range of [" +
+                    String.format("%.5f", -props.shearingTolerance) + ", " + String.format("%.5f", props.shearingTolerance) + "], ";
+        }
+        if (boardOffset > props.boardLocationTolerance.convertToUnits(LengthUnit.Millimeters).getValue()) {
+            errString += "the board origin moved " + String.format("%.4f", boardOffset) +
+                    "mm which is greater than the allowed amount of " +
+                    String.format("%.4f", props.boardLocationTolerance.convertToUnits(LengthUnit.Millimeters).getValue()) + "mm, ";
+        }
+        if (errString.length() > 0) {
+            errString = errString.substring(0, errString.length()-2); //strip off the last comma and space
+            MessageBoxes.errorBox(mainFrame, "Error", "Results invalid because " + errString + "; double check to ensure you are " +
+                    "jogging the camera to the correct placements.  Other potential remidies include " +
+                    "setting the initial board X, Y, Z, and Rotation in the Boards panel; using a different set of placements; " +
+                    "or changing the allowable tolerances in the MultiPlacementBoardLocationProperties section of machine.xml.");
+            cancel();
+            return false;
+        }
 
         return true;
     }
