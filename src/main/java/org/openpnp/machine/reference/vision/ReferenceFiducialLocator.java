@@ -95,7 +95,6 @@ public class ReferenceFiducialLocator implements FiducialLocator {
         Location savedBoardLocation = boardLocation.getLocation();
         AffineTransform savedPlacementTransform = boardLocation.getPlacementTransform();
        
-        // TODO: Is it really neccesasry? We have fiducials as placements
         if (checkPanel) {
             Panel panel = MainFrame.get().getJobTab().getJob().getPanels()
                     .get(boardLocation.getPanelId());

@@ -71,7 +71,6 @@ public class MultiFiducialBoardLocationProcess {
     private Location savedBoardLocation;
     private AffineTransform savedPlacementTransform;
     private MultiFiducialBoardLocationProperties props;
-    private boolean autoMove;
     
     FiducialLocator fiducialLocator = Configuration.get().getMachine().getFiducialLocator();
 
@@ -79,7 +78,6 @@ public class MultiFiducialBoardLocationProcess {
         private double scalingTolerance = 0.05; //unitless
         private double shearingTolerance = 0.05; //unitless
         protected Length boardLocationTolerance = new Length(5.0, LengthUnit.Millimeters);
-        private boolean autoMoveForAllPlacements = true;
     }
     
     public MultiFiducialBoardLocationProcess(MainFrame mainFrame, JobPanel jobPanel)
@@ -113,20 +111,6 @@ public class MultiFiducialBoardLocationProcess {
             Configuration.get().getMachine().
                 setProperty("MultiFiducialBoardLocationProperties", props);
         }
-        
-        autoMove = props.autoMoveForAllPlacements;
-        if (props.autoMoveForAllPlacements) {
-            Logger.info("Auto move is enabled for all placements.  To disable auto move " +
-                    "for the first two placements, change auto-move-for-all-placements to false in " +
-                    "MultiPlacementBoardLocationProperties section of machine.xml ");
-        }
-        else {
-            Logger.info("Auto move is disabled for the first two placements.  To enable auto move " +
-                    "for all placements, change auto-move-for-all-placements to true in " +
-                    "MultiPlacementBoardLocationProperties section of machine.xml ");
-        }
-        
-        Logger.trace("autoMove = " + autoMove);
         Logger.trace("Board location tolerance = " + props.boardLocationTolerance);
         Logger.trace("Board scaling tolerance = " + props.scalingTolerance);
         Logger.trace("Board shearing tolerance = " + props.shearingTolerance);
@@ -153,18 +137,23 @@ public class MultiFiducialBoardLocationProcess {
         
         step++;
         
-        if (currentPlacement.getType() == Type.Fiducial) {
-            Logger.error("Fiducial");
-//        	advance();
-        }
+//        if (currentPlacement.getType() == Type.Fiducial) {
+//            Logger.error("Fiducial");
+//        	  step2();
+//        }
         
         if (step == 3) {
             mainFrame.hideInstructions();
         }
         else {
-            String title = "Set correct part location";
-            mainFrame.showInstructions(title, String.format("Move camera to '%s'.", currentPlacement.getId()), true, true,
-                    step == 2 ? "Finish" : "Next", cancelActionListener, proceedActionListener);
+            String title = step == 2 ? "Done!" : "Set correct part location";
+            String instructions = step == 2 ? "" : String.format("Move camera to '%s'.", currentPlacement.getId());
+            String btnText = step == 2 ? "Finish" : "Next";
+            
+            mainFrame.showInstructions(
+            		title, instructions, true, step == 3 ? false : true, btnText, 
+            		cancelActionListener, proceedActionListener
+            );
         }
     }
     
@@ -185,18 +174,16 @@ public class MultiFiducialBoardLocationProcess {
             return false;
         }
         
-        if (autoMove) {
-            //Optimize the visit order of the placements
-            placements = optimizePlacementOrder(placements);
+        //Optimize the visit order of the placements
+        placements = optimizePlacementOrder(placements);
 
-            //Move the camera near the first placement's location
-            UiUtils.submitUiMachineTask(() -> {
-                Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
-                        placements.get(0).getLocation() );
-                MovableUtils.moveToLocationAtSafeZ(camera, location);
-                MovableUtils.fireTargetedUserAction(camera);
-            });
-        }
+        //Move the camera near the first placement's location
+        UiUtils.submitUiMachineTask(() -> {
+            Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
+                    placements.get(0).getLocation() );
+            MovableUtils.moveToLocationAtSafeZ(camera, location);
+            MovableUtils.fireTargetedUserAction(camera);
+        });
         
         //Get ready for the first placement
         idxPlacement = 0;
@@ -210,7 +197,6 @@ public class MultiFiducialBoardLocationProcess {
 
     private boolean step2() {
     	
-    	currentPlacement = placements.get(idxPlacement);
     	Location measuredLocation = null;
 
     	// Type.Fiducial 		-> let fiducialLocator find location
@@ -243,47 +229,24 @@ public class MultiFiducialBoardLocationProcess {
         if (idxPlacement<nPlacements) {
             //There are more placements to be measured
             
-            //If auto move is turned-off and we have measured two placements, turn auto move
-            //back on for the rest of the placements.  
-            if (!autoMove && (idxPlacement == 2)) {
-                //Set an interim board location so that auto move can be used
-                setBoardLocationAndPlacementTransform();
-                
-                //Clear the placement transform so we don't mix results with different transforms
-                boardLocation.setPlacementTransform(null);
-
-                //Turn-on auto move
-                autoMove = true;
-                
-                //Remove the first two placements from the list since they have already been visited
-                placements.remove(1);
-                placements.remove(0);
-                idxPlacement -= 2;
-                nPlacements -= 2;
-                
-                //and then optimize the visit order of the remaining placements
-                placements = optimizePlacementOrder(placements);
-            }
-
             //Get ready for the next placement
         	currentPlacement = placements.get(idxPlacement);
             placementId = placements.get(idxPlacement).getId();
             expectedLocations.add(placements.get(idxPlacement).getLocation()
                     .invert(boardSide==Side.Bottom, false, false, false));
             
-            if (autoMove) {
-                //Move the camera near the next placement's expected location
-                UiUtils.submitUiMachineTask(() -> {
-                    Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
-                            placements.get(idxPlacement).getLocation() );
-                    MovableUtils.moveToLocationAtSafeZ(camera, location);
-                    MovableUtils.fireTargetedUserAction(camera);
-                });
-            }
+            //Move the camera near the next placement's expected location
+            UiUtils.submitUiMachineTask(() -> {
+                Location location = Utils2D.calculateBoardPlacementLocation(boardLocation,
+                        placements.get(idxPlacement).getLocation() );
+                MovableUtils.moveToLocationAtSafeZ(camera, location);
+                MovableUtils.fireTargetedUserAction(camera);
+            });
             
             //keep repeating step2 until all placements have been measured
             step--;
-        } else {
+        } 
+        else {
             //All the placements have been visited, so set final board location and placement transform
             setBoardLocationAndPlacementTransform();
             
