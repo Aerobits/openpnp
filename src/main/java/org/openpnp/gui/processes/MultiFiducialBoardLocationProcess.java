@@ -57,18 +57,19 @@ public class MultiFiducialBoardLocationProcess {
     private final JobPanel jobPanel;
     private final Camera camera;
 
-    private int step = 1;
+    private int step;
 
-    private boolean isInstrucionShown;
     private Location currentMeasuredLocation;
     private Placement currentPlacement;
     private List<Placement> placements;
     private List<Location> expectedLocations;
     private List<Location> measuredLocations;
     private int nPlacements;
-    private int idxPlacement = 0;
+    private int idxPlacement;
+    private int idxCurrentBoard;
+    private List<BoardLocation> boardLocations;
     private BoardLocation boardLocation;
-    private Side boardSide;
+	private Side boardSide;
     private Location savedBoardLocation;
     private AffineTransform savedPlacementTransform;
     private MultiFiducialBoardLocationProperties props;
@@ -85,26 +86,13 @@ public class MultiFiducialBoardLocationProcess {
             throws Exception {
         this.mainFrame = mainFrame;
         this.jobPanel = jobPanel;
-        this.camera =
-                MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
+        this.camera = MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
 
-        isInstrucionShown = false;
+        boardLocations = jobPanel.getSelections();
+        MessageBoxes.infoBox("SELECTED BOARDS", boardLocations.toString());
         
-    	currentMeasuredLocation = new Location(LengthUnit.Millimeters);
-        currentPlacement = new Placement("");
-        expectedLocations = new ArrayList<Location>();
-        measuredLocations = new ArrayList<Location>();
-        
-        boardLocation = jobPanel.getSelection();
-        boardSide = boardLocation.getSide();
-        
-        //Save the current board location and transform in case it needs to be restored
-        savedBoardLocation = boardLocation.getLocation();
-        savedPlacementTransform = boardLocation.getPlacementTransform();
-        
-        // Clear the current transform so it doesn't potentially send us to the wrong spot
-        // to find the placements.
-        boardLocation.setPlacementTransform(null);
+        step = 1;
+        idxCurrentBoard = 0;
         
         props = (MultiFiducialBoardLocationProperties) Configuration.get().getMachine().
                     getProperty("MultiFiducialBoardLocationProperties");
@@ -152,7 +140,7 @@ public class MultiFiducialBoardLocationProcess {
 	 	        	title = "Set correct part location"; 
 	 	        	instructions = String.format("Move camera to '%s'. location", currentPlacement.getId());
 		        	btnProceedVisible = true;
-		        	btnProceedText = "Done";
+		        	btnProceedText = "Next";
 	        	 } else {
 	 	        	title = "Wait"; 
 	 	        	instructions = "Fiducial is being automatically located...";
@@ -171,21 +159,41 @@ public class MultiFiducialBoardLocationProcess {
         
         
         if (step == 4) {
-        	if (isInstrucionShown) {
-                mainFrame.hideInstructions();
-        		isInstrucionShown = false;
-        	}
+    		if (idxCurrentBoard < boardLocations.size() - 1) {
+                idxCurrentBoard++;
+                step = 1;
+                advance();	
+            } else {
+            	finish();
+            }
         }
         else {
             mainFrame.showInstructions(
-            		title, instructions, true, btnProceedVisible, btnProceedText,
+            		String.format("(Board %s/%s) | %s", idxCurrentBoard, boardLocations.size(), title), 
+            		instructions, true, btnProceedVisible, btnProceedText,
             		cancelActionListener, proceedActionListener
             );
-            isInstrucionShown = true;
         }
     }
     
     private boolean step1() {
+    	idxPlacement = 0;
+    	currentMeasuredLocation = new Location(LengthUnit.Millimeters);
+        currentPlacement = new Placement("");
+        expectedLocations = new ArrayList<Location>();
+        measuredLocations = new ArrayList<Location>();
+    	
+    	boardLocation = boardLocations.get(idxCurrentBoard);
+        boardSide = boardLocation.getSide();
+        
+        //Save the current board location and transform in case it needs to be restored
+        savedBoardLocation = boardLocation.getLocation();
+        savedPlacementTransform = boardLocation.getPlacementTransform();
+        
+        // Clear the current transform so it doesn't potentially send us to the wrong spot
+        // to find the placements.
+        boardLocation.setPlacementTransform(null);
+        
         // Get all fiducials' placements
     	placements = new ArrayList<>();
     	for (Placement placement : boardLocation.getBoard().getPlacements()) {
@@ -288,18 +296,11 @@ public class MultiFiducialBoardLocationProcess {
     }
 
     private boolean step3() {
-    	//Move machine to board origin
-    	UiUtils.submitUiMachineTask(() -> {
-            Location location = jobPanel.getSelection().getLocation();
-            MovableUtils.moveToLocationAtSafeZ(camera, location);
-            MovableUtils.fireTargetedUserAction(camera);
-        });
-        
         //All the placements have been visited, so set final board location and placement transform
         setBoardLocationAndPlacementTransform();
         
         //Refresh the job panel so that the new board location is visible
-        jobPanel.refreshSelectedRow();           
+        jobPanel.refresh();
         
         //Check the results to make sure they are valid
         double boardOffset = boardLocation.getLocation().convertToUnits(LengthUnit.Millimeters).getLinearDistanceTo(savedBoardLocation);
@@ -385,12 +386,17 @@ public class MultiFiducialBoardLocationProcess {
         
         return tsm.getTravel();
     }
+    
+    private void finish() {
+        jobPanel.refresh();
+        mainFrame.hideInstructions();
+    }
 
     private void cancel() {
         //Restore the old settings
         boardLocation.setLocation(savedBoardLocation);
         boardLocation.setPlacementTransform(savedPlacementTransform);
-        jobPanel.refreshSelectedRow();
+        jobPanel.refresh();
         
         mainFrame.hideInstructions();
     }

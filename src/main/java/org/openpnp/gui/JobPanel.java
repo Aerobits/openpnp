@@ -157,7 +157,8 @@ public class JobPanel extends JPanel {
                         setEnabledAction,setCheckFidsAction, setSideAction);
         singleSelectionActionGroup.setEnabled(false);
         
-        multiSelectionActionGroup = new ActionGroup(removeBoardAction, setEnabledAction, setCheckFidsAction, setSideAction);
+        multiSelectionActionGroup = new ActionGroup(removeBoardAction, setEnabledAction, 
+        				setCheckFidsAction, setSideAction, twoPointLocateBoardLocationAction);
         multiSelectionActionGroup.setEnabled(false);
         
         panelizeXOutAction.setEnabled(false);
