@@ -4,6 +4,7 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.model.BoardLocation;
 import org.openpnp.model.Location;
 import org.openpnp.model.Part;
+import org.openpnp.model.Placement;
 
 
 /**
@@ -17,6 +18,8 @@ public interface FiducialLocator extends PropertySheetHolder {
     public Location locateBoard(BoardLocation boardLocation, boolean checkPanel) throws Exception;
 
     public Location getHomeFiducialLocation(Location location, Part part) throws Exception;
+
+    public Location getFiducialLocation(BoardLocation boardLocation, Placement fid) throws Exception;
     
     /**
      * Get a Wizard for configuring the FiducialLocator instance properties for a specific

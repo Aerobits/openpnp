@@ -138,7 +138,7 @@ public class DlgAutoPanelize extends JDialog {
         btnImport.setAction(okAction);
         footerPanel.add(btnImport);
 
-        setSize(400, 600);
+        setSize(400, 800);
         setResizable(false);
         setLocationRelativeTo(parent);
 
@@ -224,6 +224,9 @@ public class DlgAutoPanelize extends JDialog {
                 p1.setLocation(p1Location.getLocation());
                 p1.setPart(part);
     
+                
+                
+                
                 Panel pcbPanel = new Panel("Panel1", cols, rows, gapX, gapY, partId,
                         checkFidsCheckBox.isSelected(), p0, p1);
     
