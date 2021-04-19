@@ -130,6 +130,7 @@ public class MultiFiducialBoardLocationProcess {
         String instructions = "";
         String btnProceedText = "";
         boolean btnProceedVisible = true;
+        boolean bypassUserAction = false;
         
         switch(step) {
 	        case 1:
@@ -151,6 +152,7 @@ public class MultiFiducialBoardLocationProcess {
 	        	instructions = "Click apply to apply transform";
 	        	btnProceedText = "Apply";
 	        	btnProceedVisible = true;
+	        	bypassUserAction = true;
 	        	break;
 	        }
         }
@@ -165,12 +167,17 @@ public class MultiFiducialBoardLocationProcess {
             	finish();
             }
         }
-        else {
-            mainFrame.showInstructions(
-            		String.format("(Board %s/%s) | %s", idxCurrentBoard, boardLocations.size(), title), 
-            		instructions, true, btnProceedVisible, btnProceedText,
-            		cancelActionListener, proceedActionListener
-            );
+        else { 
+        	if(!bypassUserAction){
+	            mainFrame.showInstructions(
+	            		String.format("(Board %s/%s) | %s", idxCurrentBoard, boardLocations.size(), title), 
+	            		instructions, true, btnProceedVisible, btnProceedText,
+	            		cancelActionListener, proceedActionListener
+	            );
+	        }
+            else {
+            	advance();
+            }
         }
     }
     
