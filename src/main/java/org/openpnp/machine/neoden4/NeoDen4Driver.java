@@ -395,6 +395,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         putInt32(0x00, b, 4);
         writeWithChecksum(b);
         
+        Thread.sleep(10);
+        
         pollFor(0x07, 0x43);
         
         if (! waitForStatusReady(100, 30000)) {
@@ -497,7 +499,10 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     private Boolean isStatusReady() throws Exception {
+    	
+    	Thread.sleep(10);
         pollFor(0x45, 0x09);
+        Thread.sleep(10);
         pollFor(0x05, 0x14);
 
         write(0x85);
@@ -548,6 +553,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[3] = (byte) nozzle;
         writeWithChecksum(b);
         
+        Thread.sleep(10);
+        
         pollFor(0x02, 0x46);
         
     }
@@ -578,6 +585,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[3] = (byte) nozzle;
         writeWithChecksum(b);
         
+        Thread.sleep(10);
+        
         pollFor(0x01, 0x45);
         Thread.sleep(10);
     }
@@ -595,6 +604,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[2] = 0x09;
         b[4] = (byte) 0xc8;
         writeWithChecksum(b);
+        
+        Thread.sleep(10);
         
         pollFor(0x06, 0x42);
         Thread.sleep(10);
@@ -650,6 +661,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
             b[2] = (byte) strength;
             writeWithChecksum(b);
             
+            Thread.sleep(10);
+            
             pollFor(0x0c, 0x49);
     	}
     	else {
@@ -666,6 +679,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     		b[2] = (byte) strength;
     		writeWithChecksum(b);
 
+    		Thread.sleep(10);
+    		
     		pollFor(0x0E, 0x4B);
     		Thread.sleep(10);
 	
@@ -928,6 +943,9 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[7] = (byte)0x00;
 
         writeWithChecksum(b);
+        
+        Thread.sleep(10);
+        
         pollFor(0x07,  0x43);
     }
 
@@ -947,6 +965,9 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[6] = (byte)0x0c;
         b[7] = (byte)0x00;
         writeWithChecksum(b);
+        
+        Thread.sleep(10);
+        
         pollFor(0x09,  0x4c);
     }
 
@@ -966,6 +987,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[6] = (byte)0xf3;
         b[7] = (byte)0xff;
         writeWithChecksum(b);
+        Thread.sleep(10);
         pollFor(0x09,  0x4c);
     }
 
@@ -1007,7 +1029,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         b[0] = (byte) value;
         b[1] = (byte) nozzleNum;
         writeWithChecksum(b);
-
+        Thread.sleep(10);
         pollFor(0x03,  0x47);
     }
 
