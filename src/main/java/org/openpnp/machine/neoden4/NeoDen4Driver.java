@@ -1,6 +1,7 @@
 package org.openpnp.machine.neoden4;
 
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -262,18 +263,33 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     
     int read(boolean log) throws Exception {
         while (true) {
-            try {
+//            try {
+            	
+            	
                 int d = getCommunications().read();
                 if (log) {
                     Logger.trace(String.format("< %02x", d & 0xff));
                 }
                 return d;
-            }
-            catch (TimeoutException e) {
-                continue;
-            }
+//            }
+//            catch (TimeoutException e) {
+//                continue;
+//            }
         }
     }
+    
+    void flushInput() throws Exception{
+    	
+    	try {
+    		while(true) {
+    			read();
+    		}
+    	}
+    	 catch (TimeoutException e) {
+           
+       }
+    }
+    
     
     void write(int d) throws Exception {
         write(d, true);
@@ -920,7 +936,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
                 break;
             }
             case "ReleaseC": {
-            	releaseCMotors();
+            	actuate(actuator, 0.0);
             break;
             }
         }
@@ -1033,74 +1049,101 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         pollFor(0x03,  0x47);
     }
 
+    private void actuateInternal(ReferenceActuator actuator, double value) throws Exception {
+        switch (actuator.getName()) {
+        case ACT_N1_BLOW:
+        case ACT_N1_VACUUM: {
+            setAirParameters(1, value);
+            break;
+        }
+        case ACT_N2_BLOW:
+        case ACT_N2_VACUUM: {
+            setAirParameters(2, value);
+            break;
+        }
+        case ACT_N3_BLOW:
+        case ACT_N3_VACUUM: {
+            setAirParameters(3, value);
+            break;
+        }
+        case ACT_N4_BLOW:
+        case ACT_N4_VACUUM: {
+            setAirParameters(4, value);
+            break;
+        }
+        case "Lights-Down": {
+            write(0x44);
+            expect(0x08);
+            
+            write(0xc4);
+            expect(0x00);
+            
+            byte[] b = new byte[8];
+            b[0] = (byte) value;
+            writeWithChecksum(b);
+            
+            pollFor(0x04,  0x40);
+          break;
+        }
+        case "Lights-Up": {
+            write(0x47);
+            expect(0x0b);
+            
+            write(0xc7);
+            expect(0x03);
+            
+            byte[] b = new byte[8];
+            b[4] = (byte) value;
+            writeWithChecksum(b);
+            
+            pollFor(0x07,  0x43);
+            break;
+        }
+        case "Rails": {
+            if ((int)value == 0) {
+              stopRail();
+            } else if (value > 0) {
+                stopRail();
+                setRailSpeed((byte)value);
+                forwardRail();
+            }
+            else {
+                stopRail();
+                setRailSpeed((byte)value);
+                reverseRail();
+            }
+            
+          break;
+        }
+        case "ReleaseC": {
+        	releaseCMotors();
+        	break;
+        }
+        }
+    }
+    
+    
+    
     @Override
     public void actuate(ReferenceActuator actuator, double value) throws Exception {
-        switch (actuator.getName()) {
-            case ACT_N1_BLOW:
-            case ACT_N1_VACUUM: {
-                setAirParameters(1, value);
-                break;
-            }
-            case ACT_N2_BLOW:
-            case ACT_N2_VACUUM: {
-                setAirParameters(2, value);
-                break;
-            }
-            case ACT_N3_BLOW:
-            case ACT_N3_VACUUM: {
-                setAirParameters(3, value);
-                break;
-            }
-            case ACT_N4_BLOW:
-            case ACT_N4_VACUUM: {
-                setAirParameters(4, value);
-                break;
-            }
-            case "Lights-Down": {
-                write(0x44);
-                expect(0x08);
-                
-                write(0xc4);
-                expect(0x00);
-                
-                byte[] b = new byte[8];
-                b[0] = (byte) value;
-                writeWithChecksum(b);
-                
-                pollFor(0x04,  0x40);
-              break;
-            }
-            case "Lights-Up": {
-                write(0x47);
-                expect(0x0b);
-                
-                write(0xc7);
-                expect(0x03);
-                
-                byte[] b = new byte[8];
-                b[4] = (byte) value;
-                writeWithChecksum(b);
-                
-                pollFor(0x07,  0x43);
-                break;
-            }
-            case "Rails": {
-                if ((int)value == 0) {
-                  stopRail();
-                } else if (value > 0) {
-                    stopRail();
-                    setRailSpeed((byte)value);
-                    forwardRail();
-                }
-                else {
-                    stopRail();
-                    setRailSpeed((byte)value);
-                    reverseRail();
-                }
-                
-              break;
-            }
-        }
+    	boolean success = false;
+    	for(int i=0; i<3; i++) {
+        	try {
+        		actuateInternal(actuator, value);
+        		success = true;
+        		break;
+        	}
+        	catch (Exception e){
+        		Thread.sleep(1000);
+        		flushInput();
+        		Thread.sleep(1000);
+        	}
+    	}
+    	
+    	if(!success) {
+    		throw new IOException("Communication error.");
+    	}
+    	
     }
     
     private int getNozzleAirValue(int nozzleNum) throws Exception {

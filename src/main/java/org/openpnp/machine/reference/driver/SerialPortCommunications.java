@@ -136,13 +136,36 @@ public class SerialPortCommunications extends ReferenceDriverCommunications {
         return portNames.toArray(new String[] {});
     }
 
+//    long start = System.currentTimeMillis();
+// // ...
+// long finish = System.currentTimeMillis();
+// long timeElapsed = finish - start;
+    
+    
     public int read() throws TimeoutException, IOException {
-        byte[] b = new byte[1];
-        int l = serialPort.readBytes(b, 1);
+    	long start = System.currentTimeMillis();
+    	int l = 0;
+    	byte[] b = new byte[1];
+    	
+    	while(System.currentTimeMillis() - start < 500) {	
+    		if(serialPort.bytesAvailable() > 0) {
+    			l = serialPort.readBytes(b, 1);
+    			break;
+    		}
+    		else {
+    			try {
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					continue;
+				}
+    		}
+    	}
+        
+
         if (l == -1) {
             throw new IOException("Read error.");
         }
-        if (l == 0) {
+        if (l == 0 ) {
             throw new TimeoutException("Read timeout.");
         }
         return b[0];
