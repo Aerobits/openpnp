@@ -111,7 +111,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 
     protected boolean isAlreadyHomed = false;
     
-    
 //    @Deprecated
     @Attribute(required = false)
     protected double homeCoordinateX = -437.;
@@ -290,7 +289,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
        }
     }
     
-    
     void write(int d) throws Exception {
         write(d, true);
     }
@@ -341,8 +339,14 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     int pollFor(int command, int response) throws Exception {
+    	long start = System.currentTimeMillis();
         do {
             write(command);
+            
+            if(System.currentTimeMillis() - start > 500) {
+            	throw new TimeoutException("Pool for timeout");
+            }
+            
         } while (read() != response);
         return response;
     }
@@ -433,8 +437,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     @Override
     public void setGlobalOffsets(ReferenceMachine machine, AxesLocation location)
             throws Exception {
-        // TODO: if the driver can do it, please implement to support visual homing. 
-//        throw new Exception("Not supported in this driver 1");
     	
     	globalOffsetX = location.getCoordinate(location.getAxis(Axis.Type.X)) - this.x + globalOffsetX;
     	globalOffsetY = location.getCoordinate(location.getAxis(Axis.Type.Y)) - this.y + globalOffsetY;
@@ -453,8 +455,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     	double result = Utils2D.distance(start,end);
     	return result;
     }
-    
-
     
     private void retractNozzles() throws Exception {
     	if(this.z1 < 0 || this.z2 < 0 || this.z3 < 0  || this.z4 < 0) {
@@ -547,8 +547,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         return true;
     }
 
-
-    
     private void moveZ(int nozzle, double z) throws Exception {
         // Neoden thinks 13.0 is max retracted into the head, 0 is max out.
         // In our world, 0 is max up and -13 is max down.
@@ -627,7 +625,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         Thread.sleep(10);
     }
     
-    public void feed(int id, int strength, int feedRate) throws Exception {
+    private void feedInternal(int id, int strength, int feedRate) throws Exception {
         write(0x3f);
         expect(0x0c);
         
@@ -655,9 +653,30 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         
         //pollFor(0x47, 0x42);
     }
-
-    public void peel(int id, int strength, int feedRate) throws Exception {
+    
+    public void feed(int id, int strength, int feedRate) throws Exception {
+    	boolean success = false;
+    	for(int i=0; i<3; i++) {
+        	try {
+        		feedInternal(id, strength, feedRate);
+        		success = true;
+        		break;
+        	}
+        	catch (Exception e){
+        		Thread.sleep(1000);
+        		flushInput();
+        		Logger.debug("Recovered feed");
+        		Thread.sleep(1000);
+        	}
+    	}
     	
+    	if(!success) {
+    		throw new IOException("Feed error.");
+    	}
+    }
+
+    private void peelInternal(int id, int strength, int feedRate) throws Exception {
+
     	boolean isTopHalf = false;
     	
     	if(id >= 20) {
@@ -703,6 +722,27 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     	}
     }
     
+    public void peel(int id, int strength, int feedRate) throws Exception {
+    	boolean success = false;
+    	for(int i=0; i<3; i++) {
+        	try {
+        		peelInternal(id, strength, feedRate);
+        		success = true;
+        		break;
+        	}
+        	catch (Exception e){
+        		Thread.sleep(1000);
+        		flushInput();
+        		Logger.debug("Recovered peel");
+        		Thread.sleep(1000);
+        	}
+    	}
+    	
+    	if(!success) {
+    		throw new IOException("Peel error.");
+    	}
+    }
+    
     @Override
     public Length getFeedRatePerSecond() {
         // Default implementation for feeders that don't implement an extra feed-rate. 
@@ -710,165 +750,187 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         return new Length(250, getUnits());
     }
     
+    private void moveToInternal(ReferenceHeadMountable hm, MoveToCommand move) 
+    		throws Exception {
+    	 AxesLocation location = move.getLocation1();
+         double feedRate = move.getFeedRatePerSecond();
+         // Reconstruct speed factor from "virtual" feed-rate assuming the default 
+         // 250mm/s axes feedrate.
+         
+         // TODO: better solution than just assuming 250. 
+         double speed = Math.max(0.0, Math.min(1.0, feedRate/250.0));
+         
+         double x = location.getCoordinate(location.getAxis(this, Axis.Type.X), units);
+         double y = location.getCoordinate(location.getAxis(this, Axis.Type.Y), units);
+         double z = location.getCoordinate(location.getAxis(this, Axis.Type.Z), units);
+         double c = location.getCoordinate(location.getAxis(this, Axis.Type.Rotation), units);
+
+         if(z >= 0 ) {
+         	z = 0;
+         }
+         
+         // TODO: remove NaN handling. It is already done outside of the driver.
+         
+         // Handle NaNs, which means don't move this axis for this move. We just copy the existing
+         // coordinate.
+
+         boolean isDelayNeeded = false;
+
+         double minZ = 0.;
+         double maxZ = -13.;
+
+         switch (hm.getId()) {
+             case "N1":
+                 c = Double.isNaN(c) ? this.c1 : c;
+                 c = Math.max(c, -180.);
+                 c = Math.min(c, 180.);                
+                 if (Math.abs(c-this.c1)>0.001) {
+                     moveC(1, c);
+//                     moveC(1, c);
+                     this.c1 = c;
+                     isDelayNeeded = true;
+                 }
+                 break;
+             case "N2":
+
+                 c = Double.isNaN(c) ? this.c2 : c;
+                 c = Math.max(c, -180.);
+                 c = Math.min(c, 180.);                
+                 if (Math.abs(c-this.c2)>0.001) {
+                     moveC(2, c);
+//                     moveC(2, c);
+                     this.c2 = c;
+                     isDelayNeeded = true;
+                 }
+                 break;
+             case "N3":
+                 c = Double.isNaN(c) ? this.c3 : c;
+                 c = Math.max(c, -180.);
+                 c = Math.min(c, 180.);                
+                 if (Math.abs(c-this.c3)>0.001) {
+                     moveC(3, c);
+//                     moveC(3, c);
+                     this.c3 = c;
+                     isDelayNeeded = true;
+                 }
+                 break;
+             case "N4":
+         
+                 c = Double.isNaN(c) ? this.c4 : c;
+                 c = Math.max(c, -180.);
+                 c = Math.min(c, 180.);                
+                 if (Math.abs(c-this.c4)>0.001) {
+                     moveC(4, c);
+//                     moveC(4, c);
+                     this.c4 = c;
+                     isDelayNeeded = true;
+                 }
+                 break;
+         }
+         
+         
+         
+         x = Double.isNaN(x) ? this.x : x;
+         y = Double.isNaN(y) ? this.y : y;
+         if (distance(this.x - x, this.y - y) > 0.0001) {
+         	if(distance(this.x - x, this.y - y) <= 10.1) {
+         		speed = 0.2;
+         	}
+             setMoveSpeed(speed);
+             moveXySafe(x, y);
+             
+             Logger.debug("MoveXY");
+             
+             this.x = x;
+             this.y = y;
+             
+             isDelayNeeded = false;
+         }
+         
+         if(isDelayNeeded) {
+         	Thread.sleep(100);
+         }
+         
+         switch (hm.getId()) {
+         case "N1":
+             z = Double.isNaN(z) ? this.z1 : z;
+             z = Math.min(z, minZ);
+             z = Math.max(z, maxZ);
+             if (Math.abs(z-this.z1)>0.001) {
+                 moveZ(1, z);
+                 this.z1 = z;
+                 isDelayNeeded = true;
+             }
+             break;
+             
+         case "N2":
+             z = Double.isNaN(z) ? this.z2 : z;
+             z = Math.min(z, minZ);
+             z = Math.max(z, maxZ);
+             if (Math.abs(z-this.z2)>0.001) {
+                 moveZ(2, z);
+                 this.z2 = z;
+                 isDelayNeeded = true;
+             }
+             break;
+             
+         case "N3":
+             z = Double.isNaN(z) ? this.z3 : z;
+             z = Math.min(z, minZ);
+             z = Math.max(z, maxZ);
+             if (Math.abs(z-this.z3)>0.001) {
+                 moveZ(3, z);
+                 this.z3 = z;
+                 isDelayNeeded = true;
+             }
+             break;
+             
+         case "N4":
+             z = Double.isNaN(z) ? this.z4 : z;
+             z = Math.min(z, minZ);
+             z = Math.max(z, maxZ);
+             if (Math.abs(z-this.z4)>0.001) {
+                 moveZ(4, z);
+                 this.z4 = z;
+                 isDelayNeeded = true;
+             }
+             break;
+         }
+         
+         
+         if(isDelayNeeded) {
+         	Thread.sleep(200);
+         }
+         
+         
+         
+         // Store the new location to the axes.
+         location.setToDriverCoordinates(this);
+         motionPending = true;
+    }
+    
     @Override
     public void moveTo(ReferenceHeadMountable hm, MoveToCommand move)
             throws Exception {
-        AxesLocation location = move.getLocation1();
-        double feedRate = move.getFeedRatePerSecond();
-        // Reconstruct speed factor from "virtual" feed-rate assuming the default 
-        // 250mm/s axes feedrate.
-        
-        // TODO: better solution than just assuming 250. 
-        double speed = Math.max(0.0, Math.min(1.0, feedRate/250.0));
-        
-        double x = location.getCoordinate(location.getAxis(this, Axis.Type.X), units);
-        double y = location.getCoordinate(location.getAxis(this, Axis.Type.Y), units);
-        double z = location.getCoordinate(location.getAxis(this, Axis.Type.Z), units);
-        double c = location.getCoordinate(location.getAxis(this, Axis.Type.Rotation), units);
-
-        if(z >= 0 ) {
-        	z = 0;
-        }
-        
-        // TODO: remove NaN handling. It is already done outside of the driver.
-        
-        // Handle NaNs, which means don't move this axis for this move. We just copy the existing
-        // coordinate.
-
-        boolean isDelayNeeded = false;
-
-        double minZ = 0.;
-        double maxZ = -13.;
-
-        switch (hm.getId()) {
-            case "N1":
-                c = Double.isNaN(c) ? this.c1 : c;
-                c = Math.max(c, -180.);
-                c = Math.min(c, 180.);                
-                if (Math.abs(c-this.c1)>0.001) {
-                    moveC(1, c);
-//                    moveC(1, c);
-                    this.c1 = c;
-                    isDelayNeeded = true;
-                }
-                break;
-            case "N2":
-
-                c = Double.isNaN(c) ? this.c2 : c;
-                c = Math.max(c, -180.);
-                c = Math.min(c, 180.);                
-                if (Math.abs(c-this.c2)>0.001) {
-                    moveC(2, c);
-//                    moveC(2, c);
-                    this.c2 = c;
-                    isDelayNeeded = true;
-                }
-                break;
-            case "N3":
-                c = Double.isNaN(c) ? this.c3 : c;
-                c = Math.max(c, -180.);
-                c = Math.min(c, 180.);                
-                if (Math.abs(c-this.c3)>0.001) {
-                    moveC(3, c);
-//                    moveC(3, c);
-                    this.c3 = c;
-                    isDelayNeeded = true;
-                }
-                break;
-            case "N4":
-        
-                c = Double.isNaN(c) ? this.c4 : c;
-                c = Math.max(c, -180.);
-                c = Math.min(c, 180.);                
-                if (Math.abs(c-this.c4)>0.001) {
-                    moveC(4, c);
-//                    moveC(4, c);
-                    this.c4 = c;
-                    isDelayNeeded = true;
-                }
-                break;
-        }
-        
-        
-        
-        x = Double.isNaN(x) ? this.x : x;
-        y = Double.isNaN(y) ? this.y : y;
-        if (distance(this.x - x, this.y - y) > 0.0001) {
-        	if(distance(this.x - x, this.y - y) <= 10.1) {
-        		speed = 0.2;
+    	
+    	boolean success = false;
+    	for(int i=0; i<3; i++) {
+        	try {
+        		moveToInternal(hm, move);
+        		success = true;
+        		break;
         	}
-            setMoveSpeed(speed);
-            moveXySafe(x, y);
-            
-            Logger.debug("MoveXY");
-            
-            this.x = x;
-            this.y = y;
-            
-            isDelayNeeded = false;
-        }
-        
-        if(isDelayNeeded) {
-        	Thread.sleep(100);
-        }
-        
-        switch (hm.getId()) {
-        case "N1":
-            z = Double.isNaN(z) ? this.z1 : z;
-            z = Math.min(z, minZ);
-            z = Math.max(z, maxZ);
-            if (Math.abs(z-this.z1)>0.001) {
-                moveZ(1, z);
-                this.z1 = z;
-                isDelayNeeded = true;
-            }
-            break;
-            
-        case "N2":
-            z = Double.isNaN(z) ? this.z2 : z;
-            z = Math.min(z, minZ);
-            z = Math.max(z, maxZ);
-            if (Math.abs(z-this.z2)>0.001) {
-                moveZ(2, z);
-                this.z2 = z;
-                isDelayNeeded = true;
-            }
-            break;
-            
-        case "N3":
-            z = Double.isNaN(z) ? this.z3 : z;
-            z = Math.min(z, minZ);
-            z = Math.max(z, maxZ);
-            if (Math.abs(z-this.z3)>0.001) {
-                moveZ(3, z);
-                this.z3 = z;
-                isDelayNeeded = true;
-            }
-            break;
-            
-        case "N4":
-            z = Double.isNaN(z) ? this.z4 : z;
-            z = Math.min(z, minZ);
-            z = Math.max(z, maxZ);
-            if (Math.abs(z-this.z4)>0.001) {
-                moveZ(4, z);
-                this.z4 = z;
-                isDelayNeeded = true;
-            }
-            break;
-        }
-        
-        
-        if(isDelayNeeded) {
-        	Thread.sleep(200);
-        }
-        
-        
-        
-        // Store the new location to the axes.
-        location.setToDriverCoordinates(this);
-        motionPending = true;
-        
+        	catch (Exception e){
+        		Thread.sleep(1000);
+        		flushInput();
+        		Thread.sleep(1000);
+        		Logger.debug("Recovered moveTo");
+        	}
+    	}
+    	
+    	if(!success) {
+    		throw new IOException("MoveTo error.");
+    	} 
     }
 
     @Override
@@ -1122,8 +1184,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         }
     }
     
-    
-    
     @Override
     public void actuate(ReferenceActuator actuator, double value) throws Exception {
     	boolean success = false;
@@ -1136,14 +1196,14 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
+        		Logger.debug("Recovered actuate");
         		Thread.sleep(1000);
         	}
     	}
     	
     	if(!success) {
-    		throw new IOException("Communication error.");
+    		throw new IOException("Actuate error.");
     	}
-    	
     }
     
     private int getNozzleAirValue(int nozzleNum) throws Exception {
