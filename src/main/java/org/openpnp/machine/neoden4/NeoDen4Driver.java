@@ -339,12 +339,22 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     int pollFor(int command, int response) throws Exception {
+    	return pollFor(command, response, 500);
+    }
+    
+    /**
+     * @param timeoutMs disabled if <=0 
+     */
+    int pollFor(int command, int response, int timeoutMs) throws Exception {
     	long start = System.currentTimeMillis();
         do {
             write(command);
             
-            if(System.currentTimeMillis() - start > 500) {
+            if(System.currentTimeMillis() - start > timeoutMs && timeoutMs > 0) {
             	throw new TimeoutException("Pool for timeout");
+            }
+            if(command == response) {
+            	throw new TimeoutException("Pool for error");
             }
             
         } while (read() != response);
