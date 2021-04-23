@@ -40,6 +40,7 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
 
     private JCheckBox enabledCheckbox;
     private JCheckBox chckbxCenterAfterTest;
+    private JCheckBox chckbxUseDefaultPipeline;
     private JComboBox comboBoxPreRotate;
     private JComboBox comboBoxMaxRotation;
     
@@ -56,6 +57,8 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
         panel.setLayout(new FormLayout(new ColumnSpec[] {
                 FormSpecs.RELATED_GAP_COLSPEC,
                 ColumnSpec.decode("right:default"),
+                FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
@@ -126,6 +129,10 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
             }
         });
         panel.add(btnLoadDefault, "6, 8");
+        
+        chckbxUseDefaultPipeline = new JCheckBox("Use default");
+        chckbxUseDefaultPipeline.setSelected(true);
+        panel.add(chckbxUseDefaultPipeline, "8, 8");
         
         JLabel lblMaxRotation = new JLabel("Rotation");
         panel.add(lblMaxRotation, "2, 10, right, top");
@@ -220,6 +227,7 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
     @Override
     public void createBindings() {
         addWrappedBinding(partSettings, "enabled", enabledCheckbox, "selected");
+        addWrappedBinding(partSettings, "useDefaultPipeline", chckbxUseDefaultPipeline, "selected");
         addWrappedBinding(partSettings, "preRotateUsage", comboBoxPreRotate, "selectedItem");
         addWrappedBinding(partSettings, "maxRotation", comboBoxMaxRotation, "selectedItem");
     }
