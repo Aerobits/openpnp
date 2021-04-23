@@ -433,7 +433,6 @@ public class ReferenceBottomVision implements PartAlignment {
     @Override
     public Wizard getPartConfigurationWizard(Part part) {
         PartSettings partSettings = getPartSettings(part);
-        partSettings.setBottomVision(this);
         try {
             partSettings.getPipeline()
                         .setProperty("camera", VisionUtils.getBottomVisionCamera());
@@ -465,14 +464,11 @@ public class ReferenceBottomVision implements PartAlignment {
         @Element
         protected CvPipeline pipeline;
         
-        private ReferenceBottomVision bottomVision = null;
 
         public PartSettings() {
-
         }
 
         public PartSettings(ReferenceBottomVision bottomVision) {
-        	this.bottomVision = bottomVision;
             setEnabled(bottomVision.isEnabled());
             try {
                 setPipeline(bottomVision.getPipeline()
@@ -491,9 +487,6 @@ public class ReferenceBottomVision implements PartAlignment {
             this.enabled = enabled;
         }
         
-        public void setBottomVision(ReferenceBottomVision bottomVision) {
-        	this.bottomVision = bottomVision;
-        }
 
         public boolean isUseDefaultPipeline() {
             return useDefaultPipeline;
@@ -512,16 +505,8 @@ public class ReferenceBottomVision implements PartAlignment {
         }
 
         public CvPipeline getPipeline() {
-        	CvPipeline retPipeline = pipeline;
         	
-        	if(useDefaultPipeline) {
-        		try {
-					retPipeline = bottomVision.getPipeline().clone();
-				} catch (CloneNotSupportedException e) {
-					e.printStackTrace();
-				}
-        	}
-            return retPipeline;
+            return pipeline;
         }
 
         public void setPipeline(CvPipeline pipeline) {

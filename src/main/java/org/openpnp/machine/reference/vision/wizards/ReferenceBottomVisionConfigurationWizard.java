@@ -114,8 +114,10 @@ public class ReferenceBottomVisionConfigurationWizard extends AbstractConfigurat
                 UiUtils.messageBoxOnException(() -> {
                     for (PartSettings partSettings : bottomVision.getPartSettingsByPartId()
                                                                  .values()) {
-                        partSettings.setPipeline(bottomVision.getPipeline()
-                                                             .clone());
+                    	if(partSettings.isUseDefaultPipeline()) {
+	                        partSettings.setPipeline(bottomVision.getPipeline()
+	                                                             .clone());
+                    	}
                     }
                     MessageBoxes.infoBox("Parts Reset",
                             "All custom part pipelines have been reset.");
