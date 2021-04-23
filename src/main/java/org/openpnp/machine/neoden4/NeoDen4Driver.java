@@ -331,7 +331,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     int expect(int expected) throws Exception {
-        int received = read();
+        int received = read() & 0xff;
         if (received != expected) {
             throw new Exception(String.format("Expected %02x but received %02x.", expected, received));
         }
