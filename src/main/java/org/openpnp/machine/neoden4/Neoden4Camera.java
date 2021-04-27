@@ -134,12 +134,12 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
             
             
         	if(tryCapture) {
-        		if(lastWidth != width) {
+//        		if(lastWidth != width) {
         			cameraReset();
 	        		setCameraLt();
 	        		setCameraWidthHeight();
 	        		lastWidth = width;
-        		}
+//        		}
         		Thread.sleep(100);
         		
         		snapshotURI = getImageReadAsyURL();
