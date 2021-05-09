@@ -209,8 +209,8 @@ public class CameraView extends JComponent implements CameraListener {
     private MouseEvent dragJoggingStart = null;
     private MouseEvent dragJoggingTarget = null;
     private int dragJogHandleSize = 50;
-    Color dragJogHandleInactiveColor = new Color(125, 125, 125);
-    Color dragJogHandleActiveColor = Color.white;
+    Color dragJogHandleInactiveColor = new Color(255, 0, 125, 40);
+    Color dragJogHandleActiveColor = Color.magenta;
 
     private int lightToggleSize = 40;
     Color lightToggleInactiveBgColor = new Color(255, 255, 255, 100);

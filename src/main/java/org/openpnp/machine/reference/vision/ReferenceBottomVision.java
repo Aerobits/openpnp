@@ -453,6 +453,8 @@ public class ReferenceBottomVision implements PartAlignment {
     public static class PartSettings {
         @Attribute
         protected boolean enabled;
+        @Attribute
+        protected boolean useDefaultPipeline = true;
         @Attribute(required = false)
         protected PreRotateUsage preRotateUsage = PreRotateUsage.Default;
 
@@ -461,9 +463,9 @@ public class ReferenceBottomVision implements PartAlignment {
         
         @Element
         protected CvPipeline pipeline;
+        
 
         public PartSettings() {
-
         }
 
         public PartSettings(ReferenceBottomVision bottomVision) {
@@ -484,7 +486,16 @@ public class ReferenceBottomVision implements PartAlignment {
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
         }
+        
 
+        public boolean isUseDefaultPipeline() {
+            return useDefaultPipeline;
+        }
+
+        public void setUseDefaultPipeline(boolean useDefaultPipeline) {
+            this.useDefaultPipeline = useDefaultPipeline;
+        }        
+        
         public PreRotateUsage getPreRotateUsage() {
             return preRotateUsage;
         }
@@ -494,6 +505,7 @@ public class ReferenceBottomVision implements PartAlignment {
         }
 
         public CvPipeline getPipeline() {
+        	
             return pipeline;
         }
 

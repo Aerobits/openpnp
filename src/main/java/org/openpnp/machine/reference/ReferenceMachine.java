@@ -420,6 +420,13 @@ public class ReferenceMachine extends AbstractMachine {
             // if one rehomes, the isHomed flag has to be removed
             this.setHomed(false);
         }
+        
+        try {
+            Configuration.get().getScripting().on("Machine.BeforeHoming", null);
+        }
+        catch (Exception e) {
+            Logger.warn(e);
+        }
 
         getMotionPlanner().home();
         super.home();

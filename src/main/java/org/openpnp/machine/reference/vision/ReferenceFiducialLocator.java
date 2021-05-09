@@ -445,6 +445,97 @@ public class ReferenceFiducialLocator implements FiducialLocator {
         return location;
     }
     
+    public Location getFiducialLocationWithoutMove(Location location, Part part) throws Exception {
+        Camera camera = Configuration.get().getMachine().getDefaultHead().getDefaultCamera();
+
+        org.openpnp.model.Package pkg = part.getPackage();
+        if (pkg == null) {
+            throw new Exception(
+                    String.format("Part %s does not have a valid package assigned.", part.getId()));
+        }
+
+        Footprint footprint = pkg.getFootprint();
+        if (footprint == null) {
+            throw new Exception(String.format(
+                    "Package %s does not have a valid footprint. See https://github.com/openpnp/openpnp/wiki/Fiducials.",
+                    pkg.getId()));
+        }
+
+        if (footprint.getShape() == null) {
+            throw new Exception(String.format(
+                    "Package %s has an invalid or empty footprint.  See https://github.com/openpnp/openpnp/wiki/Fiducials.",
+                    pkg.getId()));
+        }
+        
+        int repeatFiducialRecognition = 1;
+
+        Logger.debug("Looking for {} at {}", part.getId(), location);
+
+        PartSettings partSettings = getPartSettings(part);
+        List<Location> matchedLocations = new ArrayList<Location>();
+        
+        try (CvPipeline pipeline = partSettings.getPipeline()) {
+
+            pipeline.setProperty("camera", camera);
+            pipeline.setProperty("part", part);
+            pipeline.setProperty("package", pkg);
+            pipeline.setProperty("footprint", footprint);
+            
+            for (int i = 0; i < repeatFiducialRecognition; i++) {
+                // Perform vision operation
+                pipeline.process();
+
+                // Get the results
+                List<KeyPoint> keypoints = pipeline.getExpectedResult(VisionUtils.PIPELINE_RESULTS_NAME)
+                        .getExpectedListModel(KeyPoint.class, 
+                                new Exception(part.getId()+" no matches found."));
+
+                // Convert to Locations
+                List<Location> locations = new ArrayList<Location>();
+                for (KeyPoint keypoint : keypoints) {
+                    locations.add(VisionUtils.getPixelLocation(camera, keypoint.pt.x, keypoint.pt.y));
+                }
+                
+                // Sort by distance from center.
+                Collections.sort(locations, new Comparator<Location>() {
+                    @Override
+                    public int compare(Location o1, Location o2) {
+                        double d1 = o1.getLinearDistanceTo(camera.getLocation());
+                        double d2 = o2.getLinearDistanceTo(camera.getLocation());
+                        return Double.compare(d1, d2);
+                    }
+                });
+                
+                // And use the closest result
+                location = locations.get(0);
+
+                MainFrame frame = MainFrame.get(); 
+                if (frame != null) {
+                    CameraView cameraView = frame.getCameraViews().getCameraView(camera);
+                    if (cameraView != null) {    
+                        LengthConverter lengthConverter = new LengthConverter();
+                        cameraView.showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()), 
+                                lengthConverter.convertForward(location.getLengthX())+", "
+                                        +lengthConverter.convertForward(location.getLengthY())+" "
+                                        +location.getUnits().getShortName(),
+                                1500);
+                    }
+                }
+
+                Logger.debug("{} located at {}", part.getId(), location);
+    
+                if (i > 0) {
+                	//to average, keep a list of all matches except the first, since its probably most off
+                	matchedLocations.add(location);
+                }
+            
+                Logger.debug("{} located at {}", part.getId(), location);
+            }
+        }
+        
+        return location;
+    }
+    
     private static IdentifiableList<Placement> getFiducials(BoardLocation boardLocation) {
         Board board = boardLocation.getBoard();
         IdentifiableList<Placement> fiducials = new IdentifiableList<>();

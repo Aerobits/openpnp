@@ -210,6 +210,7 @@ public class LensCalibration {
                         Calib3d.CALIB_CB_ASYMMETRIC_GRID);
                 break;
         }
+        Logger.debug(found);
         if (found) {
         	return imagePoints;
         } else {
@@ -219,6 +220,7 @@ public class LensCalibration {
     }
 
     private MatOfPoint3f calculateObjectPoints() {
+    	Logger.debug("Calculating object points");
         MatOfPoint3f obj = new MatOfPoint3f();
 
         switch (pattern) {
