@@ -668,7 +668,10 @@ public abstract class ReferenceCamera extends AbstractBroadcastingCamera impleme
         this.calibrationCallback = callback;
         calibration.setEnabled(false);
         lensCalibration = new LensCalibration(LensModel.Pinhole, Pattern.AsymmetricCirclesGrid, 4,
-                11, 15, 750);
+                9, 15, 2000);
+//        lensCalibration = new LensCalibration(LensModel.Pinhole, Pattern.AsymmetricCirclesGrid, 4,
+//                11, 15, 750);
+        Logger.debug("Starting calibration");
         calibrating = true;
     }
 

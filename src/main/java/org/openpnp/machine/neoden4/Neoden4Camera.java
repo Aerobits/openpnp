@@ -55,6 +55,8 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
     @Attribute(required = false)
     private int height = 1024;
     @Attribute(required = false)
+    private int mode = 0; // 0 - 1024, 1-512, 2-256
+    @Attribute(required = false)
     private int timeout = 1000;
 
     @Attribute(required = false)
@@ -66,6 +68,7 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
     @Attribute(required = false)
     private int shiftY = 0;
 
+	private int currentSize = 1024;
     private Actuator actuatorCameraSw = null;
     private boolean dirty = false;
 
@@ -109,7 +112,8 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
     
     @Override
     public synchronized BufferedImage internalCapture() {
-        //Logger.trace(String.format("internalCapture() [cameraId:%d]", cameraId));
+        Logger.trace(String.format("internalCapture() [cameraId:%d]", cameraId));
+        
         if (!ensureOpen()) {
             return null;
         }
@@ -131,26 +135,60 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
 //        			}
 //        		}
 //        	}
+        	
+        	width = 1024;
+        	height = 1024;
             
-            
-        	if(tryCapture) {
-        		if(lastWidth != width) {
-        			cameraReset();
-	        		setCameraLt();
-	        		setCameraWidthHeight();
-	        		lastWidth = width;
-        		}
-        		Thread.sleep(100);
+        	if (tryCapture) {
         		
+        		if (mode == 0) {
+        			currentSize = 1024;
+        		} 
+        		else if (mode == 1) {
+        			currentSize = 512;
+        		} 
+        		else if (mode == 2) {
+        			currentSize = 256;
+        		}
+        		
+    			cameraReset();
+        		setCameraLt();
+        		setCameraWidthHeight();
         		snapshotURI = getImageReadAsyURL();
 	            BufferedImage img = ImageIO.read(snapshotURI);
 	            
+	            // If image is cropped, make it 1024x1024, 
+	            // shift it to center and fill blank space
+	            if (currentSize != 1024 && currentSize != 1024) {
+	            	// 1. Create blank image
+	            	BufferedImage newImg = 
+	            			new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_BGR);
+
+	            	// 2. Get top left pixel
+	    	        int firstPixel = img.getRGB(0, 0);
+	    	        
+	    	        // 3. Set all pixels the same as firstPixel
+	    	        for (int i = 0; i < 1024; i++) {
+		    	        for (int j = 0; j < 1024; j++) {
+			    	        newImg.setRGB(i, j, firstPixel);
+		    	        }
+	    	        }
+	    	        
+	    	        // 4. Copy cropped image to center of new image
+	    	        int offset = (1024/2) - (currentSize/2) - 1;
+	    	        for (int i = 0; i < currentSize; i++) {
+		    	        for (int j = 0; j < currentSize; j++) {
+		    	        	int currentPixel = img.getRGB(i, j);
+			    	        newImg.setRGB(i+offset, j+offset, currentPixel);
+		    	        }
+	    	        }
+	    	        img = newImg;
+	            }
+	            
 	            BufferedImage imgRGB = convertToRgb(img);
-	            Thread.sleep(100);
 	            return imgRGB;
-        	}else
-        	{
-        		Thread.sleep(100);
+        	}
+        	else {
         		return null;
         	}
         	
@@ -160,27 +198,30 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
             return null;
         }
     }
-
+    
      private URL getImageReadAsyURL() throws MalformedURLException, URISyntaxException {
-        Logger.trace(String.format("getImageReadAsyURL() [cameraId:%d, width:%d, height:%d, timeout:%d]", 
-            cameraId, width, height, timeout));
-        return new URIBuilder(baseURI)
+    	 Logger.trace(String.format("getImageReadAsyURL() [cameraId:%d, width:%d, height:%d, timeout:%d]", 
+            cameraId, currentSize, currentSize, timeout));
+
+        
+    	 return new URIBuilder(baseURI)
             .setPath(baseURI.getPath() + "imgReadAsy")
-            .setParameter("width", String.valueOf(width))
-            .setParameter("height", String.valueOf(height))
+            .setParameter("width", String.valueOf(currentSize))
+            .setParameter("height", String.valueOf(currentSize))
             .setParameter("timeout", String.valueOf(timeout))
             .build()
             .toURL();
     }
 
     private void setCameraWidthHeight() {
-        Logger.trace(String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
+        Logger.trace(String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]",
+        		cameraId, currentSize, currentSize));
         URL funcUrl;
         try {
             funcUrl = new URIBuilder(baseURI)
                 .setPath(baseURI.getPath() + "imgSetWidthHeight")
-                .setParameter("width", String.valueOf(width))
-                .setParameter("height", String.valueOf(height))
+                .setParameter("width", String.valueOf(currentSize))
+                .setParameter("height", String.valueOf(currentSize))
                 .build()
                 .toURL();
         } catch (MalformedURLException | URISyntaxException e) {
@@ -246,13 +287,19 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
     }
 
     private void setCameraLt() {
-        Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", cameraId, shiftX, shiftY));
+    	
+    	int shiftXY = 0;
+    	if (mode == 1) shiftXY = 256;
+    	else if (mode == 2) shiftXY = 384;
+    	
+        Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", 
+        		cameraId, shiftXY, shiftXY));
         URL funcUrl;
         try {
             funcUrl = new URIBuilder(baseURI)
                 .setPath(baseURI.getPath() + "imgSetLt")
-                .setParameter("a2", String.valueOf(shiftX))
-                .setParameter("a3", String.valueOf(shiftY))
+                .setParameter("a2", String.valueOf(shiftXY))
+                .setParameter("a3", String.valueOf(shiftXY))
                 .build()
                 .toURL();
         } catch (MalformedURLException | URISyntaxException e) {
@@ -407,6 +454,14 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
         this.gain = gain;
     }
 
+    public void setMode(int mode) {
+        this.mode = mode;
+    }
+
+    public int getMode() {
+        return this.mode;
+    }
+    
     public int getShiftX() {
         return this.shiftX;
     }
