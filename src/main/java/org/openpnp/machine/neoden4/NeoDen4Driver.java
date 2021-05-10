@@ -3,6 +3,7 @@ package org.openpnp.machine.neoden4;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
@@ -13,6 +14,7 @@ import org.openpnp.machine.reference.ReferenceHead;
 import org.openpnp.machine.reference.ReferenceHeadMountable;
 import org.openpnp.machine.reference.ReferenceMachine;
 import org.openpnp.machine.reference.ReferenceNozzle;
+import org.openpnp.machine.reference.axis.ReferenceControllerAxis;
 import org.openpnp.machine.reference.driver.AbstractReferenceDriver;
 import org.openpnp.model.AxesLocation;
 import org.openpnp.model.Configuration;
@@ -130,13 +132,19 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 
     double backlashCompensation = 0.5;
     double globalOffsetX = 0, globalOffsetY = 0;
-    
+    public double getGlobalOffsetX() { return this.globalOffsetX; }
+    public double getGlobalOffsetY() { return this.globalOffsetY; }
+
     double x = 0, y = 0;
     double z1 = 0, z2 = 0, z3 = 0, z4 = 0;
     double c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
-    private boolean motionPending;
+    private int xMs = 0, yMs = 0;
+    public int getXms() { return this.xMs; }
+    public int getYms() { return this.yMs; }
 
+    private boolean motionPending;
+    
     private ReferenceActuator getOrCreateActuatorInHead(ReferenceHead head, String actuatorName) throws Exception {
         ReferenceActuator a = (ReferenceActuator) head.getActuatorByName(actuatorName);
         if (a == null) {
@@ -499,6 +507,26 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
 
     private void moveXy(double x, double y) throws Exception {
+    	moveStep((int) (x*scaleFactorX * 100), (int) (y*scaleFactorY * 100));
+    }
+    
+    public void updateAxisStepsToMm(int sx, int sy) {
+    	this.x = (sx / scaleFactorX / 100.0) + globalOffsetX;
+    	this.y = (sy / scaleFactorY / 100.0) + globalOffsetY;
+
+    	ReferenceMachine machine = ((ReferenceMachine) Configuration.get().getMachine());
+    	Axis ax = machine.getAxis("x");
+    	Axis ay = machine.getAxis("y");
+    	AxesLocation alx = new AxesLocation(ax, this.x);
+    	AxesLocation aly = new AxesLocation(ay, this.x);
+    	alx.setToDriverCoordinates(this);
+    	aly.setToDriverCoordinates(this);
+
+        Logger.debug(String.format("Neoden updateAxisStepsToMm to %.3f,%.3f", this.x, this.y));
+    }
+    
+    public void moveStep(int sx, int sy) throws Exception {
+        
         write(0x48);
         expect(0x05);
       
@@ -506,16 +534,21 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         expect(0x0d);
 
         byte[] b = new byte[8];
-        putInt32((int) (x*scaleFactorX * 100), b, 0);
-        putInt32((int) (y*scaleFactorY * 100), b, 4);
+        Logger.debug(String.format("Neoden moveStep %d, %d", sx, sy));
+        putInt32(sx, b, 0);
+        putInt32(sy, b, 4);
         writeWithChecksum(b);
         pollFor(0x08, 0x4d);
-
+        
         if (! waitForStatusReady(100, 30000)) {
             throw new Exception("moveXy timeout while waiting for status==ready");
         }
+
+        this.xMs = sx;
+        this.yMs = sy;
+        Logger.debug(String.format("xMs, yMs changed to %d,%d", sx, sy));
     }
-    
+
     private Boolean isStatusReady() throws Exception {
         pollFor(0x45, 0x09);
         pollFor(0x05, 0x14);
@@ -817,12 +850,11 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
          		speed = 0.2;
          	}
              setMoveSpeed(speed);
-             moveXySafe(x, y);
-             
-             Logger.debug("MoveXY");
+        	 moveXySafe(x, y);
+             Logger.debug("MoveXy");
              
              this.x = x;
-             this.y = y;
+             this.y = y;        
              
              isDelayNeeded = false;
          }
@@ -881,8 +913,6 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
          if(isDelayNeeded) {
          	Thread.sleep(200);
          }
-         
-         
          
          // Store the new location to the axes.
          location.setToDriverCoordinates(this);
