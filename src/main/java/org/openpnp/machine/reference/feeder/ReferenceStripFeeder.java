@@ -91,9 +91,6 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
     private Location lastHoleLocation = new Location(LengthUnit.Millimeters);
 
     @Element(required = false)
-    private Length partPitch = new Length(4, LengthUnit.Millimeters);
-
-    @Element(required = false)
     private Length tapeWidth = new Length(8, LengthUnit.Millimeters);
 
     @Attribute(required = false)
@@ -170,20 +167,20 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
         // It's the P1 value according to EIA-481-C, October 2003, pg. 9, 11, 13
         // Accuracy variations as specified in the document are not taken into account!
         double partPitchAdjusted = lineLocations[0].getLinearDistanceTo(lineLocations[1]);
-        double holeCount = (Math.round(partPitchAdjusted / partPitch.getValue()));
+        double holeCount = (Math.round(partPitchAdjusted / getPartPitch().getValue()));
 
         // if the two points are at least 1 hole apart, we can compute the adjusted pitch. 
         // otherwise use the un-adjusted holePitch (and avoid a divide by zero).  The second 
         // case means the feeder is set up incorrectly but has been tested to behave in a 
         // reasonable way, even if the two points are coincident
         if (holeCount > 0) {
-        	partPitchAdjusted = partPitchAdjusted / (Math.round(partPitchAdjusted / partPitch.getValue()));
+        	partPitchAdjusted = partPitchAdjusted / (Math.round(partPitchAdjusted / getPartPitch().getValue()));
         } else {
         	partPitchAdjusted = holePitch.getValue();
         }
         	
         Location l = Utils2D.getPointAlongLine(lineLocations[0], lineLocations[1],
-                new Length((feedCount - 1) * partPitchAdjusted, partPitch.getUnits()));
+                new Length((feedCount - 1) * partPitchAdjusted, getPartPitch().getUnits()));
         // Create the offsets that are required to go from a reference hole
         // to the part in the tape
         Length x = getHoleToPartLateral().convertToUnits(l.getUnits());
@@ -199,7 +196,9 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
         l = l.add(new Location(l.getUnits(), p.x, p.y, 0, 0));
         // Add in the angle of the tape plus the angle of the part in the tape
         // so that the part is picked at the right angle
-        l = l.derive(null, null, null, angle + getLocation().getRotation());
+        // l = l.derive(null, null, null, angle + getLocation().getRotation());
+        // pick rotation = feeder rotation + part rotation (in tape)
+        l = l.derive(null, null, null, angle + getLocation().getRotation() + getPart().getOrientationInTape());
 
         return l;
     }
@@ -240,7 +239,7 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
         Location expectedLocation = null;
         Location[] lineLocations = getIdealLineLocations();
 
-        if (partPitch.convertToUnits(LengthUnit.Millimeters).getValue() < 4) {
+        if (getPartPitch().convertToUnits(LengthUnit.Millimeters).getValue() < 4) {
             // For tapes with a part pitch < 4 we need to check each hole
             // twice since there are two parts per reference hole.
             // Note the use of holePitch here and partPitch in the
@@ -253,7 +252,7 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
             // hole 2mm from a part so we just multiply by the part pitch
             // skipping over holes that are not reference holes.
             expectedLocation = Utils2D.getPointAlongLine(lineLocations[0], lineLocations[1],
-                    partPitch.multiply(feedCount - 1));
+            		getPartPitch().multiply(feedCount - 1));
         }
         MovableUtils.moveToLocationAtSafeZ(camera, expectedLocation);
         // and look for the hole
@@ -374,11 +373,7 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
     }
 
     public Length getPartPitch() {
-        return partPitch;
-    }
-
-    public void setPartPitch(Length partPitch) {
-        this.partPitch = partPitch;
+        return new Length(getPart().getPitchInTape(), LengthUnit.Millimeters);
     }
 
     public Length getTapeWidth() {

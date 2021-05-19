@@ -108,7 +108,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
     private JTextField textFieldFeedEndY;
     private JTextField textFieldFeedEndZ;
     private JTextField textFieldTapeWidth;
-    private JLabel lblPartPitch;
+//    private JLabel lblPartPitch;
     private JTextField textFieldPartPitch;
     private JPanel panelTapeSettings;
     private JPanel panelLocations;
@@ -122,7 +122,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
     private JTextField textFieldMaxFeedCount;
     private JLabel lblTapeType;
     private JComboBox comboBoxTapeType;
-    private JLabel lblRotationInTape;
+    private JLabel lblFeederRotation;
     private JTextField textFieldLocationRotation;
     private JButton btnAutoSetup;
     private JCheckBox chckbxUseVision;
@@ -186,8 +186,8 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         lblPartInfo = new JLabel("");
         panelPart.add(lblPartInfo,"6, 2, left, default");
         
-        lblRotationInTape = new JLabel("Rotation In Tape");
-        panelPart.add(lblRotationInTape, "2, 4, left, default");
+        lblFeederRotation = new JLabel("Feeder rotation");
+        panelPart.add(lblFeederRotation, "2, 4, left, default");
 
         textFieldLocationRotation = new JTextField();
         panelPart.add(textFieldLocationRotation, "4, 4, fill, default");
@@ -237,24 +237,25 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         panelTapeSettings.add(comboBoxTapeType, "4, 4, fill, default");
 
         JLabel lblTapeWidth = new JLabel("Tape Width");
-        panelTapeSettings.add(lblTapeWidth, "8, 4, right, default");
+        panelTapeSettings.add(lblTapeWidth, "2, 6, right, default");
 
         textFieldTapeWidth = new JTextField();
-        panelTapeSettings.add(textFieldTapeWidth, "10, 4");
+        panelTapeSettings.add(textFieldTapeWidth, "4, 6");
         textFieldTapeWidth.setColumns(5);
 
-        lblPartPitch = new JLabel("Part Pitch");
-        panelTapeSettings.add(lblPartPitch, "2, 6, right, default");
-
-        textFieldPartPitch = new JTextField();
-        panelTapeSettings.add(textFieldPartPitch, "4, 6");
-        textFieldPartPitch.setColumns(5);
+//        lblPartPitch = new JLabel("Part Pitch");
+//        panelTapeSettings.add(lblPartPitch, "2, 6, right, default");
+//
+//        textFieldPartPitch = new JTextField();
+//        panelTapeSettings.add(textFieldPartPitch, "4, 6");
+//        textFieldPartPitch.setColumns(5);
+//        textFieldPartPitch.setEnabled(false); // TODO: hot-fix
 
         lblFeedCount = new JLabel("Feed Count");
-        panelTapeSettings.add(lblFeedCount, "8, 6, right, default");
+        panelTapeSettings.add(lblFeedCount, "2, 8, right, default");
 
         textFieldFeedCount = new JTextField();
-        panelTapeSettings.add(textFieldFeedCount, "10, 6");
+        panelTapeSettings.add(textFieldFeedCount, "4, 8");
         textFieldFeedCount.setColumns(10);
 
         btnResetFeedCount = new JButton(new AbstractAction("Reset") {
@@ -264,12 +265,12 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
                 applyAction.actionPerformed(e);
             }
         });
-        panelTapeSettings.add(btnResetFeedCount, "12, 6");
+        panelTapeSettings.add(btnResetFeedCount, "6, 8");
 
         lblMaxFeedCount = new JLabel("Max Feed Count");
-        panelTapeSettings.add(lblMaxFeedCount,"8, 8, right, default");
+        panelTapeSettings.add(lblMaxFeedCount,"2, 10, right, default");
         textFieldMaxFeedCount = new JTextField();
-        panelTapeSettings.add(textFieldMaxFeedCount,"10,8");
+        panelTapeSettings.add(textFieldMaxFeedCount,"4,10");
         textFieldMaxFeedCount.setColumns(10);
         textFieldMaxFeedCount.setToolTipText("Max number of parts to feed from this strip.  If set to zero, this setting is ignored.");
         btnMaxFeedCount = new JButton(new AbstractAction("Auto Set MaxFeedCount") {
@@ -284,7 +285,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         	}
         });
         btnMaxFeedCount.setToolTipText("Calculate the Max Feed Count using the feeder's hole locations and part pitch");
-        panelTapeSettings.add(btnMaxFeedCount,"12,8");
+        panelTapeSettings.add(btnMaxFeedCount,"6,10");
         
         JPanel panelVision = new JPanel();
         panelVision.setBorder(new TitledBorder(null, "Vision", TitledBorder.LEADING, TitledBorder.TOP,
@@ -403,7 +404,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         addWrappedBinding(feeder, "tapeType", comboBoxTapeType, "selectedItem");
 
         addWrappedBinding(feeder, "tapeWidth", textFieldTapeWidth, "text", lengthConverter);
-        addWrappedBinding(feeder, "partPitch", textFieldPartPitch, "text", lengthConverter);
+        // addWrappedBinding(feeder, "partPitch", textFieldPartPitch, "text", lengthConverter);
         addWrappedBinding(feeder, "feedCount", textFieldFeedCount, "text", intConverter);
         addWrappedBinding(feeder, "maxFeedCount", textFieldMaxFeedCount, "text", intConverter);
 
@@ -429,7 +430,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldTapeWidth);
         ComponentDecorators.decorateWithAutoSelect(retryCountTf);
         ComponentDecorators.decorateWithAutoSelect(pickRetryCount);
-        ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldPartPitch);
+//        ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldPartPitch);
         ComponentDecorators.decorateWithAutoSelect(textFieldFeedCount);
         ComponentDecorators.decorateWithAutoSelect(textFieldMaxFeedCount);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedStartX);
@@ -625,7 +626,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
                                                  textFieldFeedStartX, textFieldFeedStartY, null);
                                          Helpers.copyLocationIntoTextFields(referenceHole2,
                                                  textFieldFeedEndX, textFieldFeedEndY, null);
-                                         textFieldPartPitch.setText(partPitch_.getValue() + "");
+//                                         textFieldPartPitch.setText(partPitch_.getValue() + "");
                                      }
                                  });
 
