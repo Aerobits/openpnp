@@ -157,34 +157,6 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
         		snapshotURI = getImageReadAsyURL();
 	            BufferedImage img = ImageIO.read(snapshotURI);
 	            
-	            // If image is cropped, make it 1024x1024, 
-	            // shift it to center and fill blank space
-	            if (currentSize != 1024 && currentSize != 1024) {
-	            	// 1. Create blank image
-	            	BufferedImage newImg = 
-	            			new BufferedImage(1024, 1024, BufferedImage.TYPE_INT_BGR);
-
-	            	// 2. Get top left pixel
-	    	        int firstPixel = img.getRGB(0, 0);
-	    	        
-	    	        // 3. Set all pixels the same as firstPixel
-	    	        for (int i = 0; i < 1024; i++) {
-		    	        for (int j = 0; j < 1024; j++) {
-			    	        newImg.setRGB(i, j, firstPixel);
-		    	        }
-	    	        }
-	    	        
-	    	        // 4. Copy cropped image to center of new image
-	    	        int offset = (1024/2) - (currentSize/2) - 1;
-	    	        for (int i = 0; i < currentSize; i++) {
-		    	        for (int j = 0; j < currentSize; j++) {
-		    	        	int currentPixel = img.getRGB(i, j);
-			    	        newImg.setRGB(i+offset, j+offset, currentPixel);
-		    	        }
-	    	        }
-	    	        img = newImg;
-	            }
-	            
 	            BufferedImage imgRGB = convertToRgb(img);
 	            return imgRGB;
         	}
@@ -287,19 +259,14 @@ public class Neoden4Camera extends ReferenceCamera implements Runnable {
     }
 
     private void setCameraLt() {
-    	
-    	int shiftXY = 0;
-    	if (mode == 1) shiftXY = 256;
-    	else if (mode == 2) shiftXY = 384;
-    	
         Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", 
-        		cameraId, shiftXY, shiftXY));
+        		cameraId, 0, 0));
         URL funcUrl;
         try {
             funcUrl = new URIBuilder(baseURI)
                 .setPath(baseURI.getPath() + "imgSetLt")
-                .setParameter("a2", String.valueOf(shiftXY))
-                .setParameter("a3", String.valueOf(shiftXY))
+                .setParameter("a2", String.valueOf(0))
+                .setParameter("a3", String.valueOf(0))
                 .build()
                 .toURL();
         } catch (MalformedURLException | URISyntaxException e) {
