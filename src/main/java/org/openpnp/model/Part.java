@@ -55,7 +55,7 @@ public class Part extends AbstractModelObject implements Identifiable {
 
     // Part in tape attributes
 	@Attribute(required = false)
-    private int orientationInTape = 0;
+    private int rotationInTape = 0;
 
 	@Attribute(required = false)
     private int pitchInTape = 4;
@@ -175,14 +175,14 @@ public class Part extends AbstractModelObject implements Identifiable {
         firePropertyChange("pitchInTape", oldValue, pitchInTape);
 	}
 	
-    public int getOrientationInTape() {
-		return orientationInTape;
+    public int getRotationInTape() {
+		return rotationInTape;
 	}
 
-	public void setOrientationInTape(int orientationInTape) {
-        Object oldValue = this.orientationInTape;
-        this.orientationInTape = orientationInTape;
-        firePropertyChange("orientationInTape", oldValue, orientationInTape);
+	public void setRotationInTape(int rotationInTape) {
+        Object oldValue = this.rotationInTape;
+        this.rotationInTape = rotationInTape;
+        firePropertyChange("orientationInTape", oldValue, rotationInTape);
 	}
 
     @Override

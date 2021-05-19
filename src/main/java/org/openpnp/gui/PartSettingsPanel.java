@@ -51,8 +51,8 @@ public class PartSettingsPanel extends JPanel {
     private JTextField placeRetryCount;
     
     private JPanel partTapeSettingsPanel;
-    private JLabel lblOrientationInTape;
-    private JTextField orientationInTape;
+    private JLabel lblRotationInTape;
+    private JTextField rotationInTape;
     private JLabel lblPitchInTape;
     private JTextField pitchInTape;
     
@@ -111,12 +111,12 @@ public class PartSettingsPanel extends JPanel {
                 FormSpecs.DEFAULT_ROWSPEC}));
         
 
-		lblOrientationInTape = new JLabel("Orientation in tape [deg]");
-		partTapeSettingsPanel.add(lblOrientationInTape, "2, 2, right, default");
+		lblRotationInTape = new JLabel("Orientation in tape [deg]");
+		partTapeSettingsPanel.add(lblRotationInTape, "2, 2, right, default");
         
-        orientationInTape = new JTextField();
-        partTapeSettingsPanel.add(orientationInTape, "4, 2, left, default");
-        orientationInTape.setColumns(10);
+        rotationInTape = new JTextField();
+        partTapeSettingsPanel.add(rotationInTape, "4, 2, left, default");
+        rotationInTape.setColumns(10);
         
         lblPitchInTape = new JLabel("Pitch in tape [mm]");
         partTapeSettingsPanel.add(lblPitchInTape, "2, 4, right, default");
@@ -143,9 +143,9 @@ public class PartSettingsPanel extends JPanel {
         
         BeanProperty<Part, Integer> orientationPlaceBeanProperty = BeanProperty.create("orientationInTape");
         BeanProperty<JTextField, String> jTextFieldBeanProperty3 = BeanProperty.create("text");
-        AutoBinding<Part, Integer, JTextField, String> autoBinding3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, orientationPlaceBeanProperty, orientationInTape, jTextFieldBeanProperty3);
+        AutoBinding<Part, Integer, JTextField, String> autoBinding3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, orientationPlaceBeanProperty, rotationInTape, jTextFieldBeanProperty3);
         autoBinding3.bind();
-        ComponentDecorators.decorateWithAutoSelect(orientationInTape);  
+        ComponentDecorators.decorateWithAutoSelect(rotationInTape);  
 
         
         BeanProperty<Part, Integer> pitchPlaceBeanProperty = BeanProperty.create("pitchInTape");

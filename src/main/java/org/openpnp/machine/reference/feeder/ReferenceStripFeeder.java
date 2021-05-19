@@ -198,7 +198,7 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
         // so that the part is picked at the right angle
         // l = l.derive(null, null, null, angle + getLocation().getRotation());
         // pick rotation = feeder rotation + part rotation (in tape)
-        l = l.derive(null, null, null, angle + getLocation().getRotation() + getPart().getOrientationInTape());
+        l = l.derive(null, null, null, angle + getLocation().getRotation() + getPart().getRotationInTape());
 
         return l;
     }
