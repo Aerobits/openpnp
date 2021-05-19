@@ -60,11 +60,11 @@ public class NeoDen4FeederActuator extends ReferenceActuator{
     @Attribute(required = true)
     private int peelStrength = 30;
     
-    @Attribute(required = true)   
-    private int feedLength = 2;
+//    @Attribute(required = true)   
+//    private int feedLength = 2;
     
     @Attribute(required = true) 
-    private int peelLength = 10;
+    private int peelLength = 100; // 100% -> 5*feedLength
     
     
     public NeoDen4FeederActuator() {
@@ -79,16 +79,31 @@ public class NeoDen4FeederActuator extends ReferenceActuator{
     	return (ReferenceMachine) Configuration.get().getMachine();
     }
     
-  @Override
-  public void actuate(boolean on) throws Exception {
-	  if(on == true) {
-	      Logger.debug("{}.actuate({})", getName(), on);
-	      NeoDen4Driver driver = (NeoDen4Driver)getDriver();
-	      driver.feed(feederId, feedStrength, feedLength);
-	      driver.peel(peelerId, peelStrength, peelLength);
-	  }
-      
-  }
+//	@Override
+//	public void actuate(boolean on) throws Exception {
+//		if (on == true) {
+//			Logger.debug("{}.actuate({})", getName(), on);
+//			NeoDen4Driver driver = (NeoDen4Driver) getDriver();
+//			driver.feed(feederId, feedStrength, feedLength);
+//			driver.peel(peelerId, peelStrength, (int) ((peelLength / 100.0) * 5 * feedLength));
+//		}
+//	}
+	
+	@Override
+	public void actuate(double feedLength) throws Exception {
+		if (feedLength > 0) {
+			Logger.debug("{}.actuate({})", getName(), feedLength);
+			NeoDen4Driver driver = (NeoDen4Driver) getDriver();
+			driver.feed(feederId, feedStrength, (int) feedLength);
+			driver.peel(peelerId, peelStrength, (int) ((peelLength / 100.0) * 5 * feedLength));
+		} else {
+			Logger.error("Actuation feedLength can't be lower than 0!");
+		}
+	}
+
+    protected void driveActuation(double value) throws Exception {
+        getDriver().actuate(this, value);
+    }
     
  
   public int getFeederId() {
@@ -125,13 +140,13 @@ public class NeoDen4FeederActuator extends ReferenceActuator{
       this.peelStrength = peelerStrength;
   }
   
-  public int getFeedLength() {
-      return this.feedLength;
-  }
-
-  public void setFeedLength(int feedLength) {
-      this.feedLength = feedLength;
-  }
+//  public int getFeedLength() {
+//      return this.feedLength;
+//  }
+//
+//  public void setFeedLength(int feedLength) {
+//      this.feedLength = feedLength;
+//  }
   
   public int getPeelLength() {
       return this.peelLength;

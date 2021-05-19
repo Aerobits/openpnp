@@ -65,6 +65,7 @@ public class NeoDen4FeederActuatorConfigurationWizard extends AbstractActuatorCo
     
     private JLabel lblPeelLength;
     private JTextField peelLengthTextField;
+    private JLabel lblPeelLengthPercent;
     
     public NeoDen4FeederActuatorConfigurationWizard(AbstractMachine machine, NeoDen4FeederActuator actuator) {
         super(machine,  actuator);
@@ -83,6 +84,8 @@ public class NeoDen4FeederActuatorConfigurationWizard extends AbstractActuatorCo
                 ColumnSpec.decode("max(70dlu;default)"),
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,  
+                FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC
         		},
             new RowSpec[] {
                 FormSpecs.RELATED_GAP_ROWSPEC,
@@ -163,6 +166,9 @@ public class NeoDen4FeederActuatorConfigurationWizard extends AbstractActuatorCo
         peelLengthTextField = new JTextField();
         panelProperties.add(peelLengthTextField, "4, 16, fill, default");
         peelLengthTextField.setColumns(16);
+ 
+        lblPeelLengthPercent = new JLabel("[%]");
+        panelProperties.add(lblPeelLengthPercent, "6, 16, right, default");
         
         super.createUi(machine);
     }

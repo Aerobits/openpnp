@@ -676,6 +676,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     public void feed(int id, int strength, int feedRate) throws Exception {
+		Logger.debug(String.format("Feed, id=%d, strength=%d, feedRate=%d", id, strength, feedRate));
     	boolean success = false;
     	for(int i=0; i<3; i++) {
         	try {
@@ -736,6 +737,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     public void peel(int id, int strength, int feedRate) throws Exception {
+		Logger.debug(String.format("Peel, id=%d, strength=%d, feedRate=%d", id, strength, feedRate));
     	boolean success = false;
     	for(int i=0; i<3; i++) {
         	try {
