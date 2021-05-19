@@ -43,12 +43,19 @@ import com.jgoodies.forms.layout.RowSpec;
 @SuppressWarnings("serial")
 public class PartSettingsPanel extends JPanel {
     private final Part part;
+    
     private JPanel pickConditionsPanel;
-    private JLabel lblNewLabel;
+    private JLabel lblPickRetryCount;
     private JTextField pickRetryCount;
     private JLabel lblPlaceRetryCount;
     private JTextField placeRetryCount;
-
+    
+    private JPanel partTapeSettingsPanel;
+    private JLabel lblOrientationInTape;
+    private JTextField orientationInTape;
+    private JLabel lblPitchInTape;
+    private JTextField pitchInTape;
+    
     public PartSettingsPanel(Part part) {
         this.part = part;
         createUi();
@@ -58,10 +65,11 @@ public class PartSettingsPanel extends JPanel {
     private void createUi() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
-        pickConditionsPanel = new JPanel();
-        pickConditionsPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "Pick Conditions", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        add(pickConditionsPanel);
-        pickConditionsPanel.setLayout(new FormLayout(new ColumnSpec[] {
+		pickConditionsPanel = new JPanel();
+		pickConditionsPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
+				"Pick Conditions", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		this.add(pickConditionsPanel);
+		 pickConditionsPanel.setLayout(new FormLayout(new ColumnSpec[] {
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
@@ -70,10 +78,10 @@ public class PartSettingsPanel extends JPanel {
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,}));
+                FormSpecs.DEFAULT_ROWSPEC}));
         
-        lblNewLabel = new JLabel("Pick Retry Count");
-        pickConditionsPanel.add(lblNewLabel, "2, 2, right, default");
+        lblPickRetryCount = new JLabel("Pick Retry Count");
+        pickConditionsPanel.add(lblPickRetryCount, "2, 2, right, default");
         
         pickRetryCount = new JTextField();
         pickConditionsPanel.add(pickRetryCount, "4, 2, left, default");
@@ -86,6 +94,37 @@ public class PartSettingsPanel extends JPanel {
         pickConditionsPanel.add(placeRetryCount, "4, 4, left, default");
         placeRetryCount.setColumns(10);
         
+        // Part's tape settings
+        partTapeSettingsPanel = new JPanel();
+        partTapeSettingsPanel.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
+				"Tape settings", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		this.add(partTapeSettingsPanel);
+		partTapeSettingsPanel.setLayout(new FormLayout(new ColumnSpec[] {
+                FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC,
+                FormSpecs.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("default:grow"),},
+            new RowSpec[] {
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC}));
+        
+
+		lblOrientationInTape = new JLabel("Orientation in tape [deg]");
+		partTapeSettingsPanel.add(lblOrientationInTape, "2, 2, right, default");
+        
+        orientationInTape = new JTextField();
+        partTapeSettingsPanel.add(orientationInTape, "4, 2, left, default");
+        orientationInTape.setColumns(10);
+        
+        lblPitchInTape = new JLabel("Pitch in tape [mm]");
+        partTapeSettingsPanel.add(lblPitchInTape, "2, 4, right, default");
+        
+        pitchInTape = new JTextField();
+        partTapeSettingsPanel.add(pitchInTape, "4, 4, left, default");
+        pitchInTape.setColumns(10);
+        
     }
     
     protected void initDataBindings() {
@@ -94,15 +133,25 @@ public class PartSettingsPanel extends JPanel {
         AutoBinding<Part, Integer, JTextField, String> autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, partBeanProperty, pickRetryCount, jTextFieldBeanProperty);
         autoBinding.bind();
         ComponentDecorators.decorateWithAutoSelect(pickRetryCount);
-        
+
         BeanProperty<Part, Integer> partPlaceBeanProperty = BeanProperty.create("placeRetryCount");
-        BeanProperty<JTextField, String> jTextPlaceFieldBeanProperty = BeanProperty.create("text");
-        AutoBinding<Part, Integer, JTextField, String> autoBinding2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, partPlaceBeanProperty, placeRetryCount, jTextPlaceFieldBeanProperty);
+        BeanProperty<JTextField, String> jTextFieldBeanProperty2 = BeanProperty.create("text");
+        AutoBinding<Part, Integer, JTextField, String> autoBinding2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, partPlaceBeanProperty, placeRetryCount, jTextFieldBeanProperty2);
         autoBinding2.bind();
         ComponentDecorators.decorateWithAutoSelect(placeRetryCount);  
+
         
+        BeanProperty<Part, Integer> orientationPlaceBeanProperty = BeanProperty.create("orientationInTape");
+        BeanProperty<JTextField, String> jTextFieldBeanProperty3 = BeanProperty.create("text");
+        AutoBinding<Part, Integer, JTextField, String> autoBinding3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, orientationPlaceBeanProperty, orientationInTape, jTextFieldBeanProperty3);
+        autoBinding3.bind();
+        ComponentDecorators.decorateWithAutoSelect(orientationInTape);  
+
         
-        
-        
+        BeanProperty<Part, Integer> pitchPlaceBeanProperty = BeanProperty.create("pitchInTape");
+        BeanProperty<JTextField, String> jTextFieldBeanProperty4 = BeanProperty.create("text");
+        AutoBinding<Part, Integer, JTextField, String> autoBinding4 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, pitchPlaceBeanProperty, pitchInTape, jTextFieldBeanProperty4);
+        autoBinding4.bind();
+        ComponentDecorators.decorateWithAutoSelect(pitchInTape);  
     }
 }

@@ -52,6 +52,13 @@ public class Part extends AbstractModelObject implements Identifiable {
     
     @Attribute(required = false)
     private int placeRetryCount = 2;
+
+    // Part in tape attributes
+	@Attribute(required = false)
+    private int orientationInTape = 0;
+
+	@Attribute(required = false)
+    private int pitchInTape = 4;
     
     
     public int failNumber = 0;
@@ -157,6 +164,26 @@ public class Part extends AbstractModelObject implements Identifiable {
         this.pickRetryCount = pickRetryCount;
         firePropertyChange("pickRetryCount", null, pickRetryCount);
     }
+
+    public int getPitchInTape() {
+		return pitchInTape;
+	}
+
+	public void setPitchInTape(int pitchInTape) {
+        Object oldValue = this.pitchInTape;
+        this.pitchInTape = pitchInTape;
+        firePropertyChange("pitchInTape", oldValue, pitchInTape);
+	}
+	
+    public int getOrientationInTape() {
+		return orientationInTape;
+	}
+
+	public void setOrientationInTape(int orientationInTape) {
+        Object oldValue = this.orientationInTape;
+        this.orientationInTape = orientationInTape;
+        firePropertyChange("orientationInTape", oldValue, orientationInTape);
+	}
 
     @Override
     public String toString() {
