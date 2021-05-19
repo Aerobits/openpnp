@@ -132,10 +132,24 @@ public class JobPlacementsPanel extends JPanel {
         table.setRowSorter(tableSorter);
         table.getTableHeader().setDefaultRenderer(new MultisortTableHeaderCellRenderer());
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        table.setDefaultEditor(Side.class, new DefaultCellEditor(sidesComboBox));
-        table.setDefaultEditor(Part.class, new DefaultCellEditor(partsComboBox));
-        table.setDefaultEditor(Type.class, new DefaultCellEditor(typesComboBox));
-        table.setDefaultEditor(ErrorHandling.class, new DefaultCellEditor(errorHandlingComboBox));
+        
+        // Set cell click count to 2 to avoid unwanted missclicks
+        DefaultCellEditor partsCellEditor = new DefaultCellEditor(partsComboBox);
+        partsCellEditor.setClickCountToStart(2);
+        table.setDefaultEditor(Part.class, partsCellEditor);
+        
+        DefaultCellEditor sidesCellEditor = new DefaultCellEditor(sidesComboBox);
+        sidesCellEditor.setClickCountToStart(2);
+        table.setDefaultEditor(Side.class, sidesCellEditor);
+
+        DefaultCellEditor typesCellEditor = new DefaultCellEditor(typesComboBox);
+        typesCellEditor.setClickCountToStart(2);
+        table.setDefaultEditor(Type.class, typesCellEditor);
+        
+        DefaultCellEditor errorHandlingCellEditor = new DefaultCellEditor(errorHandlingComboBox);
+        errorHandlingCellEditor.setClickCountToStart(2);
+        table.setDefaultEditor(ErrorHandling.class, errorHandlingCellEditor);
+        
         table.setDefaultRenderer(Part.class, new IdentifiableTableCellRenderer<Part>());
         table.setDefaultRenderer(PlacementsTableModel.Status.class, new StatusRenderer());
         table.setDefaultRenderer(Placement.Type.class, new TypeRenderer());
