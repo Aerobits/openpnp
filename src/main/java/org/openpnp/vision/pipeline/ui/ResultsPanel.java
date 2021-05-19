@@ -23,6 +23,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 
+import org.apache.commons.logging.Log;
 import org.opencv.core.Core;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
@@ -274,18 +275,26 @@ public class ResultsPanel extends JPanel {
                 }
                 model = result.model;
             }
-        }
+		}
 
-        if (model instanceof List) {
-            String s = "";
-            for (Object o : ((List) model)) {
-                if (o != null) {
-                    s += o.toString();
-                }
-                s += "\n";
-            }
-            modelTextPane.setText(s);
-        }
+		if (model instanceof List) {
+			String s = "";
+			for (Object o : ((List) model)) {
+				if (o != null) {
+					s += o.toString();
+
+					// If stage is FindContours or FilterContours display area of contours
+					String stageOperationName = displayStage.getClass().getSimpleName();
+					if (stageOperationName.equals("FindContours") || stageOperationName.equals("FilterContours")) {
+						if (o instanceof Mat) {
+							s += String.format(", Area = %.1f", Imgproc.contourArea((Mat) o));
+						}
+					}
+				}
+				s += "\n";
+			}
+			modelTextPane.setText(s);
+		}
         else {
             modelTextPane.setText(model == null ? "" : model.toString());
         }
