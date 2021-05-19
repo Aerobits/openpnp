@@ -57,8 +57,10 @@ import org.openpnp.gui.support.LengthConverter;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MutableLocationProxy;
 import org.openpnp.gui.support.PercentConverter;
+import org.openpnp.machine.neoden4.NeoDen4FeederActuator;
 import org.openpnp.machine.reference.feeder.ReferenceLeverFeeder;
 import org.openpnp.model.Configuration;
+import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Camera;
 import org.openpnp.util.UiUtils;
 
@@ -84,6 +86,7 @@ public class ReferenceLeverFeederConfigurationWizard
 	private JLabel lblFeedRate;
     private JLabel lblActuatorId;
     private JLabel lblPeelOffActuatorId;
+    private JButton btnActuateFeeder;
     private JTextField textFieldActuatorId;
     private JTextField textFieldPeelOffActuatorId;
     private JPanel panelGeneral;
@@ -129,7 +132,8 @@ public class ReferenceLeverFeederConfigurationWizard
                 new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
-                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
+                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
+                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC},
                 new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
@@ -162,6 +166,10 @@ public class ReferenceLeverFeederConfigurationWizard
         textFieldPeelOffActuatorId = new JTextField();
         panelGeneral.add(textFieldPeelOffActuatorId, "8, 6");
         textFieldPeelOffActuatorId.setColumns(5);
+        
+        btnActuateFeeder = new JButton(actuateFeederAction);
+        panelGeneral.add(btnActuateFeeder, "10, 6");
+        btnActuateFeeder.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panelLocations = new JPanel();
         panelFields.add(panelLocations);
@@ -441,6 +449,7 @@ public class ReferenceLeverFeederConfigurationWizard
         }
     };
 
+
     @SuppressWarnings("serial")
     private Action confirmSelectTemplateImageAction = new AbstractAction("Confirm") {
         @Override
@@ -482,6 +491,26 @@ public class ReferenceLeverFeederConfigurationWizard
         }
     };
 
+	@SuppressWarnings("serial")
+	private Action actuateFeederAction = new AbstractAction("Actuate") {
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			UiUtils.messageBoxOnException(() -> {
+				String actuatorName = feeder.getActuatorName();
+				Actuator actuator = Configuration.get().getMachine().getActuatorByName(actuatorName);
+				if (actuator == null) {
+					MessageBoxes.errorBox(contentPanel, "Error",
+							String.format("Can't find actuator '%s'", actuatorName));
+				} else {
+
+					UiUtils.submitUiMachineTask(() -> {
+						actuator.actuate(feeder.getPartPitch().getValue());
+					});
+				}
+			});
+		}
+	};
+
     @SuppressWarnings("serial")
     private Action selectAoiAction = new AbstractAction("Select") {
         @Override
@@ -499,37 +528,47 @@ public class ReferenceLeverFeederConfigurationWizard
                 if (r == null || r.getWidth() == 0 || r.getHeight() == 0) {
                     cameraView.setSelection(0, 0, 100, 100);
                 }
-                else {
-                    cameraView.setSelection(r.getX(), r.getY(), r.getWidth(), r.getHeight());
-                }
-            });
+				else {
+					// Convert coordinate origin back to top left
+					cameraView.setSelection(r.getX() + (1024 / 2), r.getY() + (1024 / 2), r.getWidth(), r.getHeight());
+				}
+			});
         }
     };
 
     @SuppressWarnings("serial")
     private Action confirmSelectAoiAction = new AbstractAction("Confirm") {
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            UiUtils.messageBoxOnException(() -> {
-                Camera camera = MainFrame.get().getMachineControls().getSelectedTool().getHead()
-                        .getDefaultCamera();
-                CameraView cameraView = MainFrame.get().getCameraViews().setSelectedCamera(camera);
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			UiUtils.messageBoxOnException(() -> {
+				Camera camera = MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
+				CameraView cameraView = MainFrame.get().getCameraViews().setSelectedCamera(camera);
 
-                btnChangeAoi.setAction(selectAoiAction);
-                cancelSelectAoiAction.setEnabled(false);
+				btnChangeAoi.setAction(selectAoiAction);
+				cancelSelectAoiAction.setEnabled(false);
 
-                cameraView.setSelectionEnabled(false);
-                final Rectangle rect = cameraView.getSelection();
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        textFieldAoiX.setText(Integer.toString(rect.x));
-                        textFieldAoiY.setText(Integer.toString(rect.y));
-                        textFieldAoiWidth.setText(Integer.toString(rect.width));
-                        textFieldAoiHeight.setText(Integer.toString(rect.height));
-                    }
-                });
-            });
-        }
+				cameraView.setSelectionEnabled(false);
+				final Rectangle rect = cameraView.getSelection();
+
+				// Convert ROI origin to center instead of top left corner,
+				// because of Neoden4Camera resolution changes
+				// Let's suppose, that max resolution is 1024x1024:
+				rect.x = rect.x - (1024 / 2); // - (rect.width/2);
+				rect.y = rect.y - (1024 / 2); // - (rect.height/2);
+
+				feeder.getVision()
+						.setAreaOfInterest(new org.openpnp.model.Rectangle(rect.x, rect.y, rect.width, rect.height));
+
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						textFieldAoiX.setText(Integer.toString(rect.x));
+						textFieldAoiY.setText(Integer.toString(rect.y));
+						textFieldAoiWidth.setText(Integer.toString(rect.width));
+						textFieldAoiHeight.setText(Integer.toString(rect.height));
+					}
+				});
+			});
+		}
     };
 
     @SuppressWarnings("serial")

@@ -236,14 +236,18 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
 
         VisionProvider visionProvider = camera.getVisionProvider();
 
+        // Convert AOI origin to top-left corner (Neoden4Camera changes resolution)
         Rectangle aoi = getVision().getAreaOfInterest();
+        aoi.setX(aoi.getX() + (1024 / 2));
+        aoi.setY(aoi.getY() + (1024 / 2));
 
-        // Perform the template match
-        Logger.debug("Perform template match.");
-        Point[] matchingPoints = visionProvider.locateTemplateMatches(aoi.getX(), aoi.getY(),
-                aoi.getWidth(), aoi.getHeight(), 0, 0, vision.getTemplateImage());
+		// Perform the template match
+		Logger.debug("Perform template match.");
+		Point[] matchingPoints = visionProvider.locateTemplateMatches(
+				aoi.getX(), aoi.getY(), aoi.getWidth(), aoi.getHeight(), 
+				0, 0, vision.getTemplateImage());
 
-        // Get the best match from the array
+		// Get the best match from the array
         Point match = matchingPoints[0];
 
         // match now contains the position, in pixels, from the top left corner
