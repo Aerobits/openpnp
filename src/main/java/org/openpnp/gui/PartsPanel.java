@@ -299,12 +299,18 @@ public class PartsPanel extends JPanel implements WizardContainer {
 
 		if (cbShowOnlyPartsUsedInJob.isSelected()) {
 			List<BoardLocation> jobBoardLocations = MainFrame.get().getJobTab().getJob().getBoardLocations();
-			if (jobBoardLocations.size() == 0)
+			if (jobBoardLocations.size() == 0) {
+				MessageBoxes.infoBox("Filtering error", "Can't find job board. Make sure that job is loaded.");
+				cbShowOnlyPartsUsedInJob.setSelected(false);
 				return;
+			}
 
 			List<Placement> jobPlacements = jobBoardLocations.get(0).getBoard().getPlacements();
-			if (jobPlacements.size() == 0)
+			if (jobPlacements.size() == 0) {
+				MessageBoxes.infoBox("Filtering error", "Can't placements in job. Make sure that job is loaded.");
+				cbShowOnlyPartsUsedInJob.setSelected(false);
 				return;
+			}
 
 			ArrayList<String> partsId = new ArrayList<String>();
 			for (Placement p : jobPlacements) {
