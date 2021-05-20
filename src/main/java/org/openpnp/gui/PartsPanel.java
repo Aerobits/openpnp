@@ -22,6 +22,7 @@ package org.openpnp.gui;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -55,12 +56,15 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableRowSorter;
 
+import org.openpnp.events.FeederSelectedEvent;
+import org.openpnp.events.JobLoadedEvent;
 import org.openpnp.gui.components.AutoSelectTextTable;
 import org.openpnp.gui.support.ActionGroup;
 import org.openpnp.gui.support.Helpers;
@@ -82,6 +86,8 @@ import org.openpnp.spi.PartAlignment;
 import org.openpnp.util.UiUtils;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Serializer;
+
+import com.google.common.eventbus.Subscribe;
 
 @SuppressWarnings("serial")
 public class PartsPanel extends JPanel implements WizardContainer {
@@ -255,6 +261,9 @@ public class PartsPanel extends JPanel implements WizardContainer {
                 repaint();
             }
         });
+        
+        // For jobLoaded function trigger to refresh parts list
+        Configuration.get().getBus().register(this);
     }
 
     private Part getSelection() {
@@ -481,6 +490,12 @@ public class PartsPanel extends JPanel implements WizardContainer {
             }
         }
     };
+    
+
+    @Subscribe
+    public void jobLoaded(JobLoadedEvent event) {
+    	filterParts();
+    }
     
     @Override
     public void wizardCompleted(Wizard wizard) {}
