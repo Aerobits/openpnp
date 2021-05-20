@@ -21,11 +21,13 @@ package org.openpnp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.StringReader;
@@ -40,6 +42,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -69,14 +72,13 @@ import org.openpnp.gui.support.PackagesComboBoxModel;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.gui.support.WizardContainer;
 import org.openpnp.gui.tablemodel.PartsTableModel;
+import org.openpnp.model.BoardLocation;
 import org.openpnp.model.Configuration;
-import org.openpnp.model.Location;
 import org.openpnp.model.Part;
+import org.openpnp.model.Placement;
 import org.openpnp.spi.Feeder;
 import org.openpnp.spi.FiducialLocator;
-import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.PartAlignment;
-import org.openpnp.util.MovableUtils;
 import org.openpnp.util.UiUtils;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Serializer;
@@ -94,6 +96,7 @@ public class PartsPanel extends JPanel implements WizardContainer {
 
     private PartsTableModel tableModel;
     private TableRowSorter<PartsTableModel> tableSorter;
+    JCheckBox cbShowOnlyPartsUsedInJob;
     private JTextField searchTextField;
     private JTable table;
     private ActionGroup singleSelectionActionGroup;
@@ -122,6 +125,10 @@ public class PartsPanel extends JPanel implements WizardContainer {
 
         JPanel panel_1 = new JPanel();
         toolbarAndSearch.add(panel_1, BorderLayout.EAST);
+        
+        cbShowOnlyPartsUsedInJob = new JCheckBox(showOnlyPartsUsedInJobAction);
+        cbShowOnlyPartsUsedInJob.setMargin(new Insets(0, 0, 0, 25));
+        panel_1.add(cbShowOnlyPartsUsedInJob);
 
         JLabel lblSearch = new JLabel("Search");
         panel_1.add(lblSearch);
@@ -130,17 +137,17 @@ public class PartsPanel extends JPanel implements WizardContainer {
         searchTextField.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void removeUpdate(DocumentEvent e) {
-                search();
+                filterParts();
             }
 
             @Override
             public void insertUpdate(DocumentEvent e) {
-                search();
+            	filterParts();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                search();
+            	filterParts();
             }
         });
         panel_1.add(searchTextField);
@@ -267,18 +274,52 @@ public class PartsPanel extends JPanel implements WizardContainer {
         return selections;
     }
 
-    private void search() {
-        RowFilter<PartsTableModel, Object> rf = null;
-        // If current expression doesn't parse, don't update.
-        try {
-            rf = RowFilter.regexFilter("(?i)" + searchTextField.getText().trim());
-        }
-        catch (PatternSyntaxException e) {
-            Logger.warn("Search failed", e);
-            return;
-        }
-        tableSorter.setRowFilter(rf);
-    }
+	private void filterParts() {
+		ArrayList<RowFilter<PartsTableModel, Object>> andFilters = new ArrayList<RowFilter<PartsTableModel, Object>>();
+
+		if (searchTextField.getText().trim().length() > 0) {
+			try {
+				RowFilter<PartsTableModel, Object> rfSearch = null;
+				rfSearch = RowFilter.regexFilter("(?i)" + searchTextField.getText().trim());
+				andFilters.add(rfSearch);
+			} 
+			catch (PatternSyntaxException e) {
+				Logger.warn("Search failed", e);
+			}
+		}
+
+		if (cbShowOnlyPartsUsedInJob.isSelected()) {
+			List<BoardLocation> jobBoardLocations = MainFrame.get().getJobTab().getJob().getBoardLocations();
+			if (jobBoardLocations.size() == 0)
+				return;
+
+			List<Placement> jobPlacements = jobBoardLocations.get(0).getBoard().getPlacements();
+			if (jobPlacements.size() == 0)
+				return;
+
+			ArrayList<String> partsId = new ArrayList<String>();
+			for (Placement p : jobPlacements) {
+				Part part = p.getPart();
+				if (part != null)
+					partsId.add(part.getId());
+			}
+
+			// Create new row filter that checks if part is in job
+			andFilters.add(new RowFilter<PartsTableModel, Object>() {
+
+				public boolean include(Entry<? extends PartsTableModel, ? extends Object> entry) {
+					for (int i = entry.getValueCount() - 1; i >= 0; i--) {
+						if (partsId.contains(entry.getStringValue(i))) {
+							return true;
+						}
+					}
+					return false;
+				}
+			});
+		}
+		
+		tableSorter.setRowFilter(RowFilter.andFilter(andFilters));
+	}
 
     public final Action newPartAction = new AbstractAction() {
         {
@@ -369,9 +410,20 @@ public class PartsPanel extends JPanel implements WizardContainer {
                 FeedersPanel.pickFeeder(feeder);
             });
         }
-    };
+	};
 
-    public final Action copyPartToClipboardAction = new AbstractAction() {
+	private final Action showOnlyPartsUsedInJobAction = new AbstractAction() {
+		{
+			putValue(NAME, "Show only parts used in job");
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+	    	filterParts();
+		}
+	};
+
+	public final Action copyPartToClipboardAction = new AbstractAction() {
         {
             putValue(SMALL_ICON, Icons.copy);
             putValue(NAME, "Copy Part to Clipboard");
