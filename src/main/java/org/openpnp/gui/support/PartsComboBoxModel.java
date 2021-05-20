@@ -23,15 +23,26 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 
+import org.openpnp.gui.MainFrame;
+import org.openpnp.model.BoardLocation;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Part;
+import org.openpnp.model.Placement;
+import org.openpnp.spi.Feeder;
 
 @SuppressWarnings("serial")
 public class PartsComboBoxModel extends DefaultComboBoxModel implements PropertyChangeListener {
     private IdentifiableComparator<Part> comparator = new IdentifiableComparator<>();
+    
+    public static enum FILTER_TYPE {
+    	FILTER_NONE,
+    	FILTER_JOB,
+    	FILTER_UNUSED
+    }
 
     public PartsComboBoxModel() {
         addAllElements();
@@ -45,6 +56,62 @@ public class PartsComboBoxModel extends DefaultComboBoxModel implements Property
             addElement(part);
         }
     }
+    
+	private void addJobElements() {
+		List<BoardLocation> jobBoardLocations = MainFrame.get().getJobTab().getJob().getBoardLocations();
+		if (jobBoardLocations.size() == 0)
+			return;
+
+		List<Placement> jobPlacements = jobBoardLocations.get(0).getBoard().getPlacements();
+		if (jobPlacements.size() == 0)
+			return;
+
+		ArrayList<Part> parts = new ArrayList<>();
+		for (Placement p : jobPlacements) {
+			Part part = p.getPart();
+			if (part != null) {
+				parts.add(part);
+			}
+		}
+
+		Collections.sort(parts, comparator);
+		for (Part part : parts) {
+			addElement(part);
+		}
+	}
+
+	private void addUnusedElements() {
+		ArrayList<Part> parts = new ArrayList<>(Configuration.get().getParts());
+		List<Feeder> feeders = Configuration.get().getMachine().getFeeders();
+
+		for (Feeder f : feeders) {
+			parts.remove(f.getPart());
+		}
+
+		Collections.sort(parts, comparator);
+		for (Part part : parts) {
+			addElement(part);
+		}
+	}
+
+	public void filterElements(FILTER_TYPE type) {
+    	removeAllElements();
+    	
+		switch (type) {
+			case FILTER_NONE: {
+	    		addAllElements();
+				break;
+			}
+			case FILTER_JOB: {
+	    		addJobElements();
+				break;
+			}
+			case FILTER_UNUSED: {
+				addUnusedElements();
+				break;
+			}
+		}
+	}
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {

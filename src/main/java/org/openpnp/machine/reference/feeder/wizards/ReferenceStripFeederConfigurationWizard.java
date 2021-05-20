@@ -55,22 +55,18 @@ import org.openpnp.gui.components.LocationButtonsPanel;
 import org.openpnp.gui.support.AbstractConfigurationWizard;
 import org.openpnp.gui.support.DoubleConverter;
 import org.openpnp.gui.support.Helpers;
-import org.openpnp.gui.support.IdentifiableListCellRenderer;
 import org.openpnp.gui.support.IntegerConverter;
 import org.openpnp.gui.support.LengthConverter;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MutableLocationProxy;
-import org.openpnp.gui.support.PartsComboBoxModel;
+import org.openpnp.gui.support.FeederPartSelectionPanel;
 import org.openpnp.machine.reference.camera.BufferedImageCamera;
 import org.openpnp.machine.reference.feeder.ReferenceStripFeeder;
 import org.openpnp.machine.reference.feeder.ReferenceStripFeeder.TapeType;
-import org.openpnp.model.Board;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
-import org.openpnp.model.Part;
-import org.openpnp.model.Placement;
 import org.openpnp.spi.Camera;
 import org.openpnp.util.HslColor;
 import org.openpnp.util.MovableUtils;
@@ -96,10 +92,8 @@ import com.jgoodies.forms.layout.RowSpec;
 public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurationWizard {
     private final ReferenceStripFeeder feeder;
 
-    private JPanel panelPart;
-
-    private JComboBox comboBoxPart;
-    private JLabel lblPartInfo;
+    private FeederPartSelectionPanel panelPart;
+    private JPanel panelGeneral;
     
     private JTextField textFieldFeedStartX;
     private JTextField textFieldFeedStartY;
@@ -108,8 +102,6 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
     private JTextField textFieldFeedEndY;
     private JTextField textFieldFeedEndZ;
     private JTextField textFieldTapeWidth;
-//    private JLabel lblPartPitch;
-    private JTextField textFieldPartPitch;
     private JPanel panelTapeSettings;
     private JPanel panelLocations;
     private LocationButtonsPanel locationButtonsPanelFeedStart;
@@ -140,19 +132,20 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
 
     public ReferenceStripFeederConfigurationWizard(ReferenceStripFeeder feeder) {
         this.feeder = feeder;
+        
+        panelPart = new FeederPartSelectionPanel(feeder);
+        contentPanel.add(panelPart);
 
-        panelPart = new JPanel();
-        panelPart.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
+        panelGeneral = new JPanel();
+        panelGeneral.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
                 "General Settings", TitledBorder.LEADING, TitledBorder.TOP, null,
                 new Color(0, 0, 0)));
-        contentPanel.add(panelPart);
-        panelPart.setLayout(new FormLayout(new ColumnSpec[] {
+        contentPanel.add(panelGeneral);
+        panelGeneral.setLayout(new FormLayout(new ColumnSpec[] {
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC },
+                FormSpecs.DEFAULT_COLSPEC},
             new RowSpec[] {
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
@@ -160,54 +153,36 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
                 FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,}));
+                FormSpecs.RELATED_GAP_ROWSPEC}));
         try {
         }
         catch (Throwable t) {
             // Swallow this error. This happens during parsing in
             // in WindowBuilder but doesn't happen during normal run.
         }
-
-        lblPart = new JLabel("Part");
-        panelPart.add(lblPart, "2, 2, right, default");
-
-        comboBoxPart = new JComboBox();
-        comboBoxPart.setModel(new PartsComboBoxModel());
-        comboBoxPart.setRenderer(new IdentifiableListCellRenderer<Part>());
-        panelPart.add(comboBoxPart, "4, 2, left, default");
-
-        comboBoxPart.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                updatePartInfo(e);            
-            }
-        });
-        
-        lblPartInfo = new JLabel("");
-        panelPart.add(lblPartInfo,"6, 2, left, default");
         
         lblFeederRotation = new JLabel("Feeder rotation");
-        panelPart.add(lblFeederRotation, "2, 4, left, default");
+        panelGeneral.add(lblFeederRotation, "2, 2, left, default");
 
         textFieldLocationRotation = new JTextField();
-        panelPart.add(textFieldLocationRotation, "4, 4, fill, default");
+        panelGeneral.add(textFieldLocationRotation, "4, 2, fill, default");
         textFieldLocationRotation.setColumns(4);
 
         lblRetryCount = new JLabel("Feed Retry Count");
-        panelPart.add(lblRetryCount, "2, 6, right, default");
+        panelGeneral.add(lblRetryCount, "2, 4, right, default");
 
         retryCountTf = new JTextField();
         retryCountTf.setText("3");
-        panelPart.add(retryCountTf, "4, 6, fill, default");
+        panelGeneral.add(retryCountTf, "4, 4, fill, default");
         retryCountTf.setColumns(3);
         
         lblPickRetryCount = new JLabel("Pick Retry Count");
-        panelPart.add(lblPickRetryCount, "2, 8, right, default");
+        panelGeneral.add(lblPickRetryCount, "2, 6, right, default");
         
         pickRetryCount = new JTextField();
         pickRetryCount.setText("3");
         pickRetryCount.setColumns(3);
-        panelPart.add(pickRetryCount, "4, 8, fill, default");
+        panelGeneral.add(pickRetryCount, "4, 6, fill, default");
 
         panelTapeSettings = new JPanel();
         contentPanel.add(panelTapeSettings);
@@ -398,7 +373,8 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         bind(UpdateStrategy.READ_WRITE, feeder, "location", location, "location");
         addWrappedBinding(location, "rotation", textFieldLocationRotation, "text", doubleConverter);
 
-        addWrappedBinding(feeder, "part", comboBoxPart, "selectedItem");
+        addWrappedBinding(feeder, "part", panelPart.comboBoxPart, "selectedItem");
+        
         addWrappedBinding(feeder, "feedRetryCount", retryCountTf, "text", intConverter);
         addWrappedBinding(feeder, "pickRetryCount", pickRetryCount, "text", intConverter);
         addWrappedBinding(feeder, "tapeType", comboBoxTapeType, "selectedItem");
@@ -441,31 +417,6 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedEndZ);
     }
 
-    private void updatePartInfo(ActionEvent e)
-    {
-        int count = 0;
-    	Part feeder_part =(Part)comboBoxPart.getSelectedItem(); 
-    
-        for (Board board: Configuration.get().getBoards())    {
-            for (Placement p : board.getPlacements())
-            {
-                if (p.getPart() == feeder_part)
-                {
-                    count++;
-                }
-            }
-        }
-        if (count > 0)
-        {
-            String lbl = Integer.toString(count) + " used by current job";
-            lblPartInfo.setText(lbl);
-        }
-        else
-        {
-            lblPartInfo.setText("");
-        }
-    }
-    
     private Action autoSetup = new AbstractAction("Auto Setup") {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -619,7 +570,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
                                  }
                                  partPitchMM.setValue(2.0 * standardPitchIncrements);
 
-                                 final Length partPitch_ = partPitchMM.convertToUnits(firstPartLocation.getUnits());
+//                                 final Length partPitch_ = partPitchMM.convertToUnits(firstPartLocation.getUnits());
                                  SwingUtilities.invokeLater(new Runnable() {
                                      public void run() {
                                          Helpers.copyLocationIntoTextFields(referenceHole1,
