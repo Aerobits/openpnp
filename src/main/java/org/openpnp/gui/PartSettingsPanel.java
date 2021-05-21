@@ -111,7 +111,7 @@ public class PartSettingsPanel extends JPanel {
                 FormSpecs.DEFAULT_ROWSPEC}));
         
 
-		lblRotationInTape = new JLabel("Orientation in tape [deg]");
+		lblRotationInTape = new JLabel("Rotation in tape [deg]");
 		partTapeSettingsPanel.add(lblRotationInTape, "2, 2, right, default");
         
         rotationInTape = new JTextField();
@@ -141,9 +141,9 @@ public class PartSettingsPanel extends JPanel {
         ComponentDecorators.decorateWithAutoSelect(placeRetryCount);  
 
         
-        BeanProperty<Part, Integer> orientationPlaceBeanProperty = BeanProperty.create("orientationInTape");
+        BeanProperty<Part, Integer> rotationPlaceBeanProperty = BeanProperty.create("rotationInTape");
         BeanProperty<JTextField, String> jTextFieldBeanProperty3 = BeanProperty.create("text");
-        AutoBinding<Part, Integer, JTextField, String> autoBinding3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, orientationPlaceBeanProperty, rotationInTape, jTextFieldBeanProperty3);
+        AutoBinding<Part, Integer, JTextField, String> autoBinding3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, part, rotationPlaceBeanProperty, rotationInTape, jTextFieldBeanProperty3);
         autoBinding3.bind();
         ComponentDecorators.decorateWithAutoSelect(rotationInTape);  
 

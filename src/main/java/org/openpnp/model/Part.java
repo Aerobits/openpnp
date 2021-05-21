@@ -182,7 +182,7 @@ public class Part extends AbstractModelObject implements Identifiable {
 	public void setRotationInTape(int rotationInTape) {
         Object oldValue = this.rotationInTape;
         this.rotationInTape = rotationInTape;
-        firePropertyChange("orientationInTape", oldValue, rotationInTape);
+        firePropertyChange("rotationInTape", oldValue, rotationInTape);
 	}
 
     @Override
