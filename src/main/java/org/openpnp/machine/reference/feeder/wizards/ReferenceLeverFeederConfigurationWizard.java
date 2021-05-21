@@ -365,6 +365,7 @@ public class ReferenceLeverFeederConfigurationWizard
     @Override
     public void createBindings() {
         super.createBindings();
+        
         LengthConverter lengthConverter = new LengthConverter();
         IntegerConverter intConverter = new IntegerConverter();
         DoubleConverter doubleConverter =
@@ -379,12 +380,9 @@ public class ReferenceLeverFeederConfigurationWizard
 
         MutableLocationProxy feedStartLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, feeder, "feedStartLocation", feedStartLocation, "location");
-        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text",
-                lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text", lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text", lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text", lengthConverter);
 
         MutableLocationProxy feedEndLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, feeder, "feedEndLocation", feedEndLocation, "location");
@@ -393,16 +391,13 @@ public class ReferenceLeverFeederConfigurationWizard
         addWrappedBinding(feedEndLocation, "lengthZ", textFieldFeedEndZ, "text", lengthConverter);
 
         addWrappedBinding(feeder, "vision.enabled", chckbxVisionEnabled, "selected");
-        addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon",
-                imageConverter);
+        addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon", imageConverter);
 
         addWrappedBinding(feeder, "vision.areaOfInterest.x", textFieldAoiX, "text", intConverter);
         addWrappedBinding(feeder, "vision.areaOfInterest.y", textFieldAoiY, "text", intConverter);
 
-        addWrappedBinding(feeder, "vision.areaOfInterest.width", textFieldAoiWidth, "text",
-                intConverter);
-        addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text",
-                intConverter);
+        addWrappedBinding(feeder, "vision.areaOfInterest.width", textFieldAoiWidth, "text", intConverter);
+        addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text", intConverter);
         
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldPartPitch);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedRate);

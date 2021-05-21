@@ -63,21 +63,26 @@ import org.simpleframework.xml.core.Persist;
  */
 public class ReferenceLeverFeeder extends ReferenceFeeder {
 
-
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     @Element
     protected Location feedStartLocation = new Location(LengthUnit.Millimeters);
+    
     @Element
     protected Location feedEndLocation = new Location(LengthUnit.Millimeters);
+    
     @Element(required = false)
     private Length partPitch = new Length(4, LengthUnit.Millimeters);
+    
     @Element(required = false)
     protected double feedSpeed = 1.0;
+    
     @Attribute(required = false)
     protected String actuatorName;
+    
     @Attribute(required = false)
     protected String peelOffActuatorName;
+    
     @Element(required = false)
     protected Vision vision = new Vision();
 

@@ -89,11 +89,9 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 @SuppressWarnings("serial")
-public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurationWizard {
-    private final ReferenceStripFeeder feeder;
-
-    private FeederPartSelectionPanel panelPart;
-    private JPanel panelGeneral;
+public class ReferenceStripFeederConfigurationWizard 
+		extends AbstractReferenceFeederConfigurationWizard  {
+	private final ReferenceStripFeeder feeder;
     
     private JTextField textFieldFeedStartX;
     private JTextField textFieldFeedStartY;
@@ -114,8 +112,6 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
     private JTextField textFieldMaxFeedCount;
     private JLabel lblTapeType;
     private JComboBox comboBoxTapeType;
-    private JLabel lblFeederRotation;
-    private JTextField textFieldLocationRotation;
     private JButton btnAutoSetup;
     private JCheckBox chckbxUseVision;
     private JLabel lblUseVision;
@@ -131,58 +127,59 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
 
 
     public ReferenceStripFeederConfigurationWizard(ReferenceStripFeeder feeder) {
+    	super(feeder, false);
         this.feeder = feeder;
         
-        panelPart = new FeederPartSelectionPanel(feeder);
-        contentPanel.add(panelPart);
-
-        panelGeneral = new JPanel();
-        panelGeneral.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
-                "General Settings", TitledBorder.LEADING, TitledBorder.TOP, null,
-                new Color(0, 0, 0)));
-        contentPanel.add(panelGeneral);
-        panelGeneral.setLayout(new FormLayout(new ColumnSpec[] {
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC},
-            new RowSpec[] {
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC}));
-        try {
-        }
-        catch (Throwable t) {
-            // Swallow this error. This happens during parsing in
-            // in WindowBuilder but doesn't happen during normal run.
-        }
-        
-        lblFeederRotation = new JLabel("Feeder rotation");
-        panelGeneral.add(lblFeederRotation, "2, 2, left, default");
-
-        textFieldLocationRotation = new JTextField();
-        panelGeneral.add(textFieldLocationRotation, "4, 2, fill, default");
-        textFieldLocationRotation.setColumns(4);
-
-        lblRetryCount = new JLabel("Feed Retry Count");
-        panelGeneral.add(lblRetryCount, "2, 4, right, default");
-
-        retryCountTf = new JTextField();
-        retryCountTf.setText("3");
-        panelGeneral.add(retryCountTf, "4, 4, fill, default");
-        retryCountTf.setColumns(3);
-        
-        lblPickRetryCount = new JLabel("Pick Retry Count");
-        panelGeneral.add(lblPickRetryCount, "2, 6, right, default");
-        
-        pickRetryCount = new JTextField();
-        pickRetryCount.setText("3");
-        pickRetryCount.setColumns(3);
-        panelGeneral.add(pickRetryCount, "4, 6, fill, default");
+//        panelPart = new FeederPartSelectionPanel(feeder);
+//        contentPanel.add(panelPart);
+//
+//        panelGeneral = new JPanel();
+//        panelGeneral.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null),
+//                "General Settings", TitledBorder.LEADING, TitledBorder.TOP, null,
+//                new Color(0, 0, 0)));
+//        contentPanel.add(panelGeneral);
+//        panelGeneral.setLayout(new FormLayout(new ColumnSpec[] {
+//                FormSpecs.RELATED_GAP_COLSPEC,
+//                FormSpecs.DEFAULT_COLSPEC,
+//                FormSpecs.RELATED_GAP_COLSPEC,
+//                FormSpecs.DEFAULT_COLSPEC},
+//            new RowSpec[] {
+//                FormSpecs.RELATED_GAP_ROWSPEC,
+//                FormSpecs.DEFAULT_ROWSPEC,
+//                FormSpecs.RELATED_GAP_ROWSPEC,
+//                FormSpecs.DEFAULT_ROWSPEC,
+//                FormSpecs.RELATED_GAP_ROWSPEC,
+//                FormSpecs.DEFAULT_ROWSPEC,
+//                FormSpecs.RELATED_GAP_ROWSPEC}));
+//        try {
+//        }
+//        catch (Throwable t) {
+//            // Swallow this error. This happens during parsing in
+//            // in WindowBuilder but doesn't happen during normal run.
+//        }
+//        
+//        lblFeederRotation = new JLabel("Feeder rotation");
+//        panelGeneral.add(lblFeederRotation, "2, 2, left, default");
+//
+//        textFieldLocationRotation = new JTextField();
+//        panelGeneral.add(textFieldLocationRotation, "4, 2, fill, default");
+//        textFieldLocationRotation.setColumns(4);
+//
+//        lblRetryCount = new JLabel("Feed Retry Count");
+//        panelGeneral.add(lblRetryCount, "2, 4, right, default");
+//
+//        retryCountTf = new JTextField();
+//        retryCountTf.setText("3");
+//        panelGeneral.add(retryCountTf, "4, 4, fill, default");
+//        retryCountTf.setColumns(3);
+//        
+//        lblPickRetryCount = new JLabel("Pick Retry Count");
+//        panelGeneral.add(lblPickRetryCount, "2, 6, right, default");
+//        
+//        pickRetryCount = new JTextField();
+//        pickRetryCount.setText("3");
+//        pickRetryCount.setColumns(3);
+//        panelGeneral.add(pickRetryCount, "4, 6, fill, default");
 
         panelTapeSettings = new JPanel();
         contentPanel.add(panelTapeSettings);
@@ -364,35 +361,23 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
 
     @Override
     public void createBindings() {
+        super.createBindings();
+        
         LengthConverter lengthConverter = new LengthConverter();
         IntegerConverter intConverter = new IntegerConverter();
         DoubleConverter doubleConverter = new DoubleConverter(Configuration.get()
                                                                            .getLengthDisplayFormat());
-
-        MutableLocationProxy location = new MutableLocationProxy();
-        bind(UpdateStrategy.READ_WRITE, feeder, "location", location, "location");
-        addWrappedBinding(location, "rotation", textFieldLocationRotation, "text", doubleConverter);
-
-        addWrappedBinding(feeder, "part", panelPart.comboBoxPart, "selectedItem");
         
-        addWrappedBinding(feeder, "feedRetryCount", retryCountTf, "text", intConverter);
-        addWrappedBinding(feeder, "pickRetryCount", pickRetryCount, "text", intConverter);
         addWrappedBinding(feeder, "tapeType", comboBoxTapeType, "selectedItem");
-
         addWrappedBinding(feeder, "tapeWidth", textFieldTapeWidth, "text", lengthConverter);
-        // addWrappedBinding(feeder, "partPitch", textFieldPartPitch, "text", lengthConverter);
         addWrappedBinding(feeder, "feedCount", textFieldFeedCount, "text", intConverter);
         addWrappedBinding(feeder, "maxFeedCount", textFieldMaxFeedCount, "text", intConverter);
 
         MutableLocationProxy feedStartLocation = new MutableLocationProxy();
-        bind(UpdateStrategy.READ_WRITE, feeder, "referenceHoleLocation", feedStartLocation,
-                "location");
-        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text",
-                lengthConverter);
+        bind(UpdateStrategy.READ_WRITE, feeder, "referenceHoleLocation", feedStartLocation, "location");
+        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text",lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text",lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text",lengthConverter);
 
         MutableLocationProxy feedEndLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, feeder, "lastHoleLocation", feedEndLocation, "location");
@@ -402,13 +387,7 @@ public class ReferenceStripFeederConfigurationWizard extends AbstractConfigurati
 
         addWrappedBinding(feeder, "visionEnabled", chckbxUseVision, "selected");
 
-        ComponentDecorators.decorateWithAutoSelect(textFieldLocationRotation);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldTapeWidth);
-        ComponentDecorators.decorateWithAutoSelect(retryCountTf);
-        ComponentDecorators.decorateWithAutoSelect(pickRetryCount);
-//        ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldPartPitch);
-        ComponentDecorators.decorateWithAutoSelect(textFieldFeedCount);
-        ComponentDecorators.decorateWithAutoSelect(textFieldMaxFeedCount);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedStartX);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedStartY);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedStartZ);
