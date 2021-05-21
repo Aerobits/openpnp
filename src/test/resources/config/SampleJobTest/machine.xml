@@ -107,7 +107,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="138.715" y="88.244" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="139.057" y="84.226" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -130,7 +129,7 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="155.055" y="87.275" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="154.713" y="83.314" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
+            
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -153,7 +152,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="172.601" y="56.319" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="172.204" y="60.325" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -176,7 +174,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="184.084" y="55.085" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="184.436" y="59.07" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -199,7 +196,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="157.344" y="40.291" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="157.34" y="36.323" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -222,7 +218,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="157.328" y="40.297" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="157.34" y="36.296" z="-10.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -245,7 +240,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="167.353" y="40.296" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="167.311" y="36.305" z="-10.0" rotation="0.0"/>
-            <part-pitch value="2.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -268,7 +262,6 @@
             <location units="Millimeters" x="0.0" y="0.0" z="-10.0" rotation="0.0"/>
             <reference-hole-location units="Millimeters" x="177.343" y="40.286" z="-10.0" rotation="0.0"/>
             <last-hole-location units="Millimeters" x="177.307" y="36.311" z="-10.0" rotation="0.0"/>
-            <part-pitch value="2.0" units="Millimeters"/>
             <tape-width value="8.0" units="Millimeters"/>
             <pipeline>
                <stages>
@@ -296,7 +289,6 @@
             <feed-mid-2-location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
             <feed-mid-3-location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
             <feed-end-location units="Millimeters" x="0.0" y="0.0" z="0.0" rotation="0.0"/>
-            <part-pitch value="4.0" units="Millimeters"/>
             <feed-pitch value="4.0" units="Millimeters"/>
             <feed-speed-push-1>1.0</feed-speed-push-1>
             <pipeline>
