@@ -102,7 +102,7 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
     @Override
     public Location getPickLocation() throws Exception {
         if (pickLocation == null) {
-            pickLocation = location;
+            pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
         }
 
         if (vision.isEnabled() && visionOffset != null) {
@@ -143,7 +143,7 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
 
         head.moveToSafeZ();
 
-        pickLocation = this.location;
+        pickLocation = this.location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
 
         if (feededCount == 0) {
             Location feedStartLocation = this.feedStartLocation;

@@ -43,6 +43,7 @@ import org.openpnp.util.Utils2D;
 import org.openpnp.util.VisionUtils;
 import org.openpnp.vision.pipeline.CvPipeline;
 import org.openpnp.vision.pipeline.CvStage;
+import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 
@@ -194,12 +195,12 @@ public class ReferenceStripFeeder extends ReferenceFeeder {
         p = Utils2D.rotatePoint(p, angle);
         // And add the offset to the location we calculated previously
         l = l.add(new Location(l.getUnits(), p.x, p.y, 0, 0));
-        // Add in the angle of the tape plus the angle of the part in the tape
+        // Add in the angle of the feeder plus the angle of the part in the tape
         // so that the part is picked at the right angle
         // l = l.derive(null, null, null, angle + getLocation().getRotation());
         // pick rotation = feeder rotation + part rotation (in tape)
         l = l.derive(null, null, null, angle + getLocation().getRotation() + getPart().getRotationInTape());
-
+        
         return l;
     }
 
