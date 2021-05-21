@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2011 Jason von Nieda <jason@vonnieda.org>
- * 
- * This file is part of OpenPnP.
- * 
- * OpenPnP is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * OpenPnP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with OpenPnP. If not, see
- * <http://www.gnu.org/licenses/>.
- * 
- * For more information about OpenPnP visit http://openpnp.org
- */
-
-package org.openpnp.machine.reference.feeder.wizards;
+package org.openpnp.machine.neoden4.wizards;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -57,8 +38,11 @@ import org.openpnp.gui.support.LengthConverter;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.MutableLocationProxy;
 import org.openpnp.gui.support.PercentConverter;
-import org.openpnp.machine.reference.feeder.ReferenceLeverFeeder;
+import org.openpnp.machine.neoden4.NeoDen4FeederActuator;
+import org.openpnp.machine.neoden4.Neoden4Feeder;
+import org.openpnp.machine.reference.feeder.wizards.AbstractReferenceFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
+import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Camera;
 import org.openpnp.util.UiUtils;
 
@@ -68,9 +52,8 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 @SuppressWarnings("serial")
-public class ReferenceLeverFeederConfigurationWizard
-        extends AbstractReferenceFeederConfigurationWizard {
-    private final ReferenceLeverFeeder feeder;
+public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederConfigurationWizard {
+    private final Neoden4Feeder feeder;
 
     private JTextField textFieldFeedStartX;
     private JTextField textFieldFeedStartY;
@@ -84,6 +67,7 @@ public class ReferenceLeverFeederConfigurationWizard
 	private JLabel lblFeedRate;
     private JLabel lblActuatorId;
     private JLabel lblPeelOffActuatorId;
+    private JButton btnActuateFeeder;
     private JTextField textFieldActuatorId;
     private JTextField textFieldPeelOffActuatorId;
     private JPanel panelGeneral;
@@ -112,9 +96,9 @@ public class ReferenceLeverFeederConfigurationWizard
     private JPanel panel;
     private JButton btnCancelChangeTemplateImage;
     private JButton btnResetVisionOffsets;
-
-    public ReferenceLeverFeederConfigurationWizard(ReferenceLeverFeeder feeder) {
-        super(feeder, false);
+    
+    public Neoden4FeederConfigurationWizard(Neoden4Feeder feeder) {
+    	super(feeder, false, true);
         this.feeder = feeder;
 
         JPanel panelFields = new JPanel();
@@ -129,7 +113,8 @@ public class ReferenceLeverFeederConfigurationWizard
                 new ColumnSpec[] {FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
-                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
+                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
+                        FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC},
                 new RowSpec[] {FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
@@ -162,6 +147,10 @@ public class ReferenceLeverFeederConfigurationWizard
         textFieldPeelOffActuatorId = new JTextField();
         panelGeneral.add(textFieldPeelOffActuatorId, "8, 6");
         textFieldPeelOffActuatorId.setColumns(5);
+        
+        btnActuateFeeder = new JButton(actuateFeederAction);
+        panelGeneral.add(btnActuateFeeder, "10, 6");
+        btnActuateFeeder.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panelLocations = new JPanel();
         panelFields.add(panelLocations);
@@ -357,6 +346,7 @@ public class ReferenceLeverFeederConfigurationWizard
     @Override
     public void createBindings() {
         super.createBindings();
+        
         LengthConverter lengthConverter = new LengthConverter();
         IntegerConverter intConverter = new IntegerConverter();
         DoubleConverter doubleConverter =
@@ -371,12 +361,9 @@ public class ReferenceLeverFeederConfigurationWizard
 
         MutableLocationProxy feedStartLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, feeder, "feedStartLocation", feedStartLocation, "location");
-        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text",
-                lengthConverter);
-        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text",
-                lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthX", textFieldFeedStartX, "text", lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthY", textFieldFeedStartY, "text", lengthConverter);
+        addWrappedBinding(feedStartLocation, "lengthZ", textFieldFeedStartZ, "text", lengthConverter);
 
         MutableLocationProxy feedEndLocation = new MutableLocationProxy();
         bind(UpdateStrategy.READ_WRITE, feeder, "feedEndLocation", feedEndLocation, "location");
@@ -385,16 +372,13 @@ public class ReferenceLeverFeederConfigurationWizard
         addWrappedBinding(feedEndLocation, "lengthZ", textFieldFeedEndZ, "text", lengthConverter);
 
         addWrappedBinding(feeder, "vision.enabled", chckbxVisionEnabled, "selected");
-        addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon",
-                imageConverter);
+        addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon", imageConverter);
 
         addWrappedBinding(feeder, "vision.areaOfInterest.x", textFieldAoiX, "text", intConverter);
         addWrappedBinding(feeder, "vision.areaOfInterest.y", textFieldAoiY, "text", intConverter);
 
-        addWrappedBinding(feeder, "vision.areaOfInterest.width", textFieldAoiWidth, "text",
-                intConverter);
-        addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text",
-                intConverter);
+        addWrappedBinding(feeder, "vision.areaOfInterest.width", textFieldAoiWidth, "text", intConverter);
+        addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text", intConverter);
         
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldPartPitch);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldFeedRate);
@@ -441,6 +425,7 @@ public class ReferenceLeverFeederConfigurationWizard
         }
     };
 
+
     @SuppressWarnings("serial")
     private Action confirmSelectTemplateImageAction = new AbstractAction("Confirm") {
         @Override
@@ -452,7 +437,7 @@ public class ReferenceLeverFeederConfigurationWizard
 
                 BufferedImage image = cameraView.captureSelectionImage();
                 if (image == null) {
-                    MessageBoxes.errorBox(ReferenceLeverFeederConfigurationWizard.this,
+                    MessageBoxes.errorBox(MainFrame.get(),
                             "No Image Selected",
                             "Please select an area of the camera image using the mouse.");
                 }
@@ -482,6 +467,26 @@ public class ReferenceLeverFeederConfigurationWizard
         }
     };
 
+	@SuppressWarnings("serial")
+	private Action actuateFeederAction = new AbstractAction("Actuate") {
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			UiUtils.messageBoxOnException(() -> {
+				String actuatorName = feeder.getActuatorName();
+				Actuator actuator = Configuration.get().getMachine().getActuatorByName(actuatorName);
+				if (actuator == null) {
+					MessageBoxes.errorBox(contentPanel, "Error",
+							String.format("Can't find actuator '%s'", actuatorName));
+				} else {
+
+					UiUtils.submitUiMachineTask(() -> {
+						actuator.actuate(feeder.getPartPitch().getValue());
+					});
+				}
+			});
+		}
+	};
+
     @SuppressWarnings("serial")
     private Action selectAoiAction = new AbstractAction("Select") {
         @Override
@@ -499,37 +504,47 @@ public class ReferenceLeverFeederConfigurationWizard
                 if (r == null || r.getWidth() == 0 || r.getHeight() == 0) {
                     cameraView.setSelection(0, 0, 100, 100);
                 }
-                else {
-                    cameraView.setSelection(r.getX(), r.getY(), r.getWidth(), r.getHeight());
-                }
-            });
+				else {
+					// Convert coordinate origin back to top left
+					cameraView.setSelection(r.getX() + (1024 / 2), r.getY() + (1024 / 2), r.getWidth(), r.getHeight());
+				}
+			});
         }
     };
 
     @SuppressWarnings("serial")
     private Action confirmSelectAoiAction = new AbstractAction("Confirm") {
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            UiUtils.messageBoxOnException(() -> {
-                Camera camera = MainFrame.get().getMachineControls().getSelectedTool().getHead()
-                        .getDefaultCamera();
-                CameraView cameraView = MainFrame.get().getCameraViews().setSelectedCamera(camera);
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			UiUtils.messageBoxOnException(() -> {
+				Camera camera = MainFrame.get().getMachineControls().getSelectedTool().getHead().getDefaultCamera();
+				CameraView cameraView = MainFrame.get().getCameraViews().setSelectedCamera(camera);
 
-                btnChangeAoi.setAction(selectAoiAction);
-                cancelSelectAoiAction.setEnabled(false);
+				btnChangeAoi.setAction(selectAoiAction);
+				cancelSelectAoiAction.setEnabled(false);
 
-                cameraView.setSelectionEnabled(false);
-                final Rectangle rect = cameraView.getSelection();
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        textFieldAoiX.setText(Integer.toString(rect.x));
-                        textFieldAoiY.setText(Integer.toString(rect.y));
-                        textFieldAoiWidth.setText(Integer.toString(rect.width));
-                        textFieldAoiHeight.setText(Integer.toString(rect.height));
-                    }
-                });
-            });
-        }
+				cameraView.setSelectionEnabled(false);
+				final Rectangle rect = cameraView.getSelection();
+
+				// Convert ROI origin to center instead of top left corner,
+				// because of Neoden4Camera resolution changes
+				// Let's suppose, that max resolution is 1024x1024:
+				rect.x = rect.x - (1024 / 2); // - (rect.width/2);
+				rect.y = rect.y - (1024 / 2); // - (rect.height/2);
+
+				feeder.getVision()
+						.setAreaOfInterest(new org.openpnp.model.Rectangle(rect.x, rect.y, rect.width, rect.height));
+
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						textFieldAoiX.setText(Integer.toString(rect.x));
+						textFieldAoiY.setText(Integer.toString(rect.y));
+						textFieldAoiWidth.setText(Integer.toString(rect.width));
+						textFieldAoiHeight.setText(Integer.toString(rect.height));
+					}
+				});
+			});
+		}
     };
 
     @SuppressWarnings("serial")

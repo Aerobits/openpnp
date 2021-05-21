@@ -1,23 +1,4 @@
-/*
- * Copyright (C) 2011 Jason von Nieda <jason@vonnieda.org>
- * 
- * This file is part of OpenPnP.
- * 
- * OpenPnP is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * OpenPnP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License along with OpenPnP. If not, see
- * <http://www.gnu.org/licenses/>.
- * 
- * For more information about OpenPnP visit http://openpnp.org
- */
-
-package org.openpnp.machine.reference.feeder;
+package org.openpnp.machine.neoden4;
 
 import java.awt.Point;
 import java.awt.image.BufferedImage;
@@ -31,8 +12,8 @@ import javax.swing.Action;
 
 import org.openpnp.ConfigurationListener;
 import org.openpnp.gui.support.Wizard;
+import org.openpnp.machine.neoden4.wizards.Neoden4FeederConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceFeeder;
-import org.openpnp.machine.reference.feeder.wizards.ReferenceLeverFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
@@ -50,34 +31,29 @@ import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Persist;
 
-/**
- * Vision System Description
- * 
- * The Vision Operation is defined as moving the Camera to the defined Pick Location, performing a
- * template match against the Template Image bound by the Area of Interest and then storing the
- * offsets from the Pick Location to the matched image as Vision Offsets.
- * 
- * The feed operation consists of: 1. Move to start location.  2. Move to end location at specified speed.
- * 3. Move to start location at normal speed. 4. Move the cameera to pick location.
- * 
- */
-public class ReferenceLeverFeeder extends ReferenceFeeder {
 
+public class Neoden4Feeder extends ReferenceFeeder {
 
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
 
     @Element
     protected Location feedStartLocation = new Location(LengthUnit.Millimeters);
+    
     @Element
     protected Location feedEndLocation = new Location(LengthUnit.Millimeters);
+    
     @Element(required = false)
     private Length partPitch = new Length(4, LengthUnit.Millimeters);
+    
     @Element(required = false)
     protected double feedSpeed = 1.0;
+    
     @Attribute(required = false)
     protected String actuatorName;
+    
     @Attribute(required = false)
     protected String peelOffActuatorName;
+    
     @Element(required = false)
     protected Vision vision = new Vision();
 
@@ -97,7 +73,7 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
     @Override
     public Location getPickLocation() throws Exception {
         if (pickLocation == null) {
-            pickLocation = location;
+            pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
         }
 
         if (vision.isEnabled() && visionOffset != null) {
@@ -138,7 +114,7 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
 
         head.moveToSafeZ();
 
-        pickLocation = this.location;
+        pickLocation = this.location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
 
         if (feededCount == 0) {
             Location feedStartLocation = this.feedStartLocation;
@@ -236,14 +212,18 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
 
         VisionProvider visionProvider = camera.getVisionProvider();
 
+        // Convert AOI origin to top-left corner (Neoden4Camera changes resolution)
         Rectangle aoi = getVision().getAreaOfInterest();
+        aoi.setX(aoi.getX() + (1024 / 2));
+        aoi.setY(aoi.getY() + (1024 / 2));
 
-        // Perform the template match
-        Logger.debug("Perform template match.");
-        Point[] matchingPoints = visionProvider.locateTemplateMatches(aoi.getX(), aoi.getY(),
-                aoi.getWidth(), aoi.getHeight(), 0, 0, vision.getTemplateImage());
+		// Perform the template match
+		Logger.debug("Perform template match.");
+		Point[] matchingPoints = visionProvider.locateTemplateMatches(
+				aoi.getX(), aoi.getY(), aoi.getWidth(), aoi.getHeight(), 
+				0, 0, vision.getTemplateImage());
 
-        // Get the best match from the array
+		// Get the best match from the array
         Point match = matchingPoints[0];
 
         // match now contains the position, in pixels, from the top left corner
@@ -380,7 +360,7 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
 
     @Override
     public Wizard getConfigurationWizard() {
-        return new ReferenceLeverFeederConfigurationWizard(this);
+        return new Neoden4FeederConfigurationWizard(this);
     }
 
     @Override
