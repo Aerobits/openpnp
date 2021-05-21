@@ -14,6 +14,7 @@ import javax.swing.JRadioButton;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
+import org.apache.commons.logging.Log;
 import org.openpnp.gui.support.PartsComboBoxModel.FILTER_TYPE;
 import org.openpnp.model.Board;
 import org.openpnp.model.Configuration;
@@ -74,8 +75,7 @@ public class FeederPartSelectionPanel extends JPanel{
 		buttonGroup.add(rbShowPartAll);
 		buttonGroup.add(rbShowPartJob);
 		buttonGroup.add(rbShowPartUnused);
-		rbShowPartAll.setSelected(true);
-
+		
 		add(rbShowPartAll, "8, 2, center, default");
 		add(rbShowPartJob, "10, 2, center, default");
 		add(rbShowPartUnused, "12, 2, center, default");
@@ -90,7 +90,6 @@ public class FeederPartSelectionPanel extends JPanel{
 		comboBoxPart = new JComboBox();
 		comboBoxPart.setModel(partsComboBoxModel);
 		comboBoxPart.setRenderer(new IdentifiableListCellRenderer<Part>());
-		comboBoxPart.setSelectedItem(feeder.getPart());
 		comboBoxPart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				updatePartInfo(e);
@@ -100,6 +99,13 @@ public class FeederPartSelectionPanel extends JPanel{
 
 		lblPartInfo = new JLabel("");
 		add(lblPartInfo, "4, 4, left, default");
+		
+		
+		// Set showing unused parts as default
+		rbShowPartUnused.setSelected(true);
+		partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_UNUSED);
+		partsComboBoxModel.addPart(feeder.getPart());
+		comboBoxPart.setSelectedItem(feeder.getPart());
 	}
 	
 	private ActionListener radioButtonsAction = new ActionListener() {
