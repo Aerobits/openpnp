@@ -30,4 +30,9 @@ public class ReferenceFeederConfigurationWizard
         super(feeder);
         this.feeder = feeder;
     }
+    
+    public ReferenceFeederConfigurationWizard(ReferenceFeeder feeder, boolean includePickLocation) {
+        super(feeder, includePickLocation);
+        this.feeder = feeder;
+    }
 }
