@@ -42,6 +42,8 @@ public class ReferenceBottomVisionConfigurationWizard extends AbstractConfigurat
     private JTextField textFieldMaxVisionPasses;
     private JTextField textFieldMaxLinearOffset;
     private JTextField textFieldMaxAngularOffset;
+    private JTextField textFieldMaxLinearOffsetPrecise;
+    private JTextField textFieldMaxAngularOffsetPrecise;
 
     
     public ReferenceBottomVisionConfigurationWizard(ReferenceBottomVision bottomVision) {
@@ -61,6 +63,8 @@ public class ReferenceBottomVisionConfigurationWizard extends AbstractConfigurat
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,},
             new RowSpec[] {
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
                 FormSpecs.RELATED_GAP_ROWSPEC,
@@ -157,6 +161,24 @@ public class ReferenceBottomVisionConfigurationWizard extends AbstractConfigurat
         panel.add(textFieldMaxAngularOffset, "8, 10, fill, default");
         textFieldMaxAngularOffset.setColumns(10);
 
+        // Precise
+        JLabel lblMaxLinearOffsetPrecise = new JLabel("Max. linear offset precise");
+        lblMaxLinearOffsetPrecise.setToolTipText("The maximum linear part offset accepted as a good fix i.e. where no additional vision pass is needed.");
+        panel.add(lblMaxLinearOffsetPrecise, "2, 12, right, default");
+        
+        textFieldMaxLinearOffsetPrecise = new JTextField();
+        panel.add(textFieldMaxLinearOffsetPrecise, "4, 12, fill, default");
+        textFieldMaxLinearOffsetPrecise.setColumns(10);
+        
+        JLabel lblMaxAngularOffsetPrecise = new JLabel("Max. angular offset precise");
+        lblMaxAngularOffsetPrecise.setToolTipText("The maximum angular part offset accepted as a good fix i.e. where no additional vision pass is needed.");
+        panel.add(lblMaxAngularOffsetPrecise, "6, 12, right, default");
+        
+        textFieldMaxAngularOffsetPrecise = new JTextField();
+        panel.add(textFieldMaxAngularOffsetPrecise, "8, 12, fill, default");
+        textFieldMaxAngularOffsetPrecise.setColumns(10);
+
+        
         preRotCheckbox.addActionListener(new ActionListener()
         {
             @Override
@@ -204,6 +226,8 @@ public class ReferenceBottomVisionConfigurationWizard extends AbstractConfigurat
         addWrappedBinding(bottomVision, "maxVisionPasses", textFieldMaxVisionPasses, "text", intConverter);
         addWrappedBinding(bottomVision, "maxLinearOffset", textFieldMaxLinearOffset, "text", lengthConverter);
         addWrappedBinding(bottomVision, "maxAngularOffset", textFieldMaxAngularOffset, "text", doubleConverter);
+        addWrappedBinding(bottomVision, "maxLinearOffsetPrecise", textFieldMaxLinearOffsetPrecise, "text", lengthConverter);
+        addWrappedBinding(bottomVision, "maxAngularOffsetPrecise", textFieldMaxAngularOffsetPrecise, "text", doubleConverter);
         
         ComponentDecorators.decorateWithAutoSelect(textFieldMaxVisionPasses);
         ComponentDecorators.decorateWithAutoSelectAndLengthConversion(textFieldMaxLinearOffset);

@@ -58,6 +58,12 @@ public class ReferenceBottomVision implements PartAlignment {
 
     @Attribute(required = false)
     protected double maxAngularOffset = 10;
+    
+    @Element(required = false)
+    protected Length maxLinearOffsetPrecise = new Length(0.5, LengthUnit.Millimeters);
+
+	@Attribute(required = false)
+    protected double maxAngularOffsetPrecise = 5;
 
     @ElementMap(required = false)
     protected Map<String, PartSettings> partSettingsByPartId = new HashMap<>();
@@ -112,6 +118,16 @@ public class ReferenceBottomVision implements PartAlignment {
         
         double diff = wantedAngle - 90;
         wantedAngle = 90;
+
+        double _maxLinearOffset = 0.0;
+        double _maxAngularOffset = 0.0;
+        if (partSettings.usePreciseAlign == true) {
+        	_maxLinearOffset = getMaxLinearOffsetPrecise().getValue();
+        	_maxAngularOffset = getMaxAngularOffsetPrecise();
+        } else {
+        	_maxLinearOffset = getMaxLinearOffset().getValue();
+        	_maxAngularOffset = getMaxAngularOffset();
+        }
         
         wantedAngle = angleNorm(wantedAngle, 180.);
         // Wanted location.
@@ -167,17 +183,17 @@ public class ReferenceBottomVision implements PartAlignment {
                 Location corner = VisionUtils.getPixelCenterOffsets(camera, corners[0].x, corners[0].y)
                         .convertToUnits(maxLinearOffset.getUnits());
                 Location cornerWithAngularOffset = corner.rotateXy(angleOffset);
-                if (center.getLinearDistanceTo(offsets) > getMaxLinearOffset().getValue()) {
+                if (center.getLinearDistanceTo(offsets) > _maxLinearOffset) {
                     Logger.debug("Offsets too large {} : center offset {} > {}", 
-                            offsets, center.getLinearDistanceTo(offsets), getMaxLinearOffset().getValue()); 
+                            offsets, center.getLinearDistanceTo(offsets), _maxLinearOffset); 
                 } 
-                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  getMaxLinearOffset().getValue()) {
+                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  _maxLinearOffset) {
                     Logger.debug("Offsets too large {} : corner offset {} > {}", 
-                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), getMaxLinearOffset().getValue()); 
+                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), _maxLinearOffset); 
                 }
-                else if (Math.abs(angleOffset) > getMaxAngularOffset()) {
+                else if (Math.abs(angleOffset) > _maxAngularOffset) {
                     Logger.debug("Offsets too large {} : angle offset {} > {}", 
-                            offsets, Math.abs(angleOffset), getMaxAngularOffset());
+                            offsets, Math.abs(angleOffset), _maxAngularOffset);
                 }
                 else {
                     // We have a good enough fix - go on with that.
@@ -391,6 +407,23 @@ public class ReferenceBottomVision implements PartAlignment {
         this.maxAngularOffset = maxAngularOffset;
     }
 
+
+    public Length getMaxLinearOffsetPrecise() {
+		return maxLinearOffsetPrecise;
+	}
+
+	public void setMaxLinearOffsetPrecise(Length maxLinearOffsetPrecise) {
+		this.maxLinearOffsetPrecise = maxLinearOffsetPrecise;
+	}
+
+	public double getMaxAngularOffsetPrecise() {
+		return maxAngularOffsetPrecise;
+	}
+
+	public void setMaxAngularOffsetPrecise(double maxAngularOffsetPrecise) {
+		this.maxAngularOffsetPrecise = maxAngularOffsetPrecise;
+	}
+    
     @Override
     public String getPropertySheetHolderTitle() {
         return "Bottom Vision";
@@ -449,13 +482,19 @@ public class ReferenceBottomVision implements PartAlignment {
     public enum MaxRotation {
         Adjust, Full
     }
+    
     @Root
     public static class PartSettings {
         @Attribute
         protected boolean enabled;
+        
         @Attribute
         protected boolean useDefaultPipeline = true;
+        
         @Attribute(required = false)
+        protected boolean usePreciseAlign = false;
+        
+		@Attribute(required = false)
         protected PreRotateUsage preRotateUsage = PreRotateUsage.Default;
 
         @Attribute(required = false)
@@ -495,7 +534,15 @@ public class ReferenceBottomVision implements PartAlignment {
         public void setUseDefaultPipeline(boolean useDefaultPipeline) {
             this.useDefaultPipeline = useDefaultPipeline;
         }        
-        
+
+        public boolean isUsePreciseAlign() {
+			return usePreciseAlign;
+		}
+
+		public void setUsePreciseAlign(boolean usePreciseAlign) {
+			this.usePreciseAlign = usePreciseAlign;
+		}
+		
         public PreRotateUsage getPreRotateUsage() {
             return preRotateUsage;
         }
