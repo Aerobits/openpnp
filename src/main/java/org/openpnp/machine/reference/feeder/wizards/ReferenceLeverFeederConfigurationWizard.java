@@ -117,7 +117,7 @@ public class ReferenceLeverFeederConfigurationWizard
     private JButton btnResetVisionOffsets;
 
     public ReferenceLeverFeederConfigurationWizard(ReferenceLeverFeeder feeder) {
-        super(feeder);
+        super(feeder, false, true);
         this.feeder = feeder;
 
         JPanel panelFields = new JPanel();

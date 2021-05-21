@@ -65,6 +65,7 @@ public abstract class AbstractReferenceFeederConfigurationWizard
         extends AbstractConfigurationWizard {
     private final ReferenceFeeder feeder;
     private final boolean includePickLocation;
+    private final boolean includefinalRotation;
 
     private FeederPartSelectionPanel partPanel;
 
@@ -92,13 +93,21 @@ public abstract class AbstractReferenceFeederConfigurationWizard
      * @wbp.parser.constructor
      */
     public AbstractReferenceFeederConfigurationWizard(ReferenceFeeder feeder) {
-        this(feeder, true);
+        this(feeder, true, false);
     }
+    
+    /**
+	 * @wbp.parser.constructor
+	 */
+	public AbstractReferenceFeederConfigurationWizard(ReferenceFeeder feeder, boolean includePickLocation) {
+		this(feeder, includePickLocation, false);
+	}
 
-    public AbstractReferenceFeederConfigurationWizard(ReferenceFeeder feeder,
-            boolean includePickLocation) {
+    public AbstractReferenceFeederConfigurationWizard(
+    		ReferenceFeeder feeder, boolean includePickLocation, boolean includefinalRotation) {
         this.feeder = feeder;
         this.includePickLocation = includePickLocation;
+        this.includefinalRotation = includefinalRotation;
         
         partPanel = new FeederPartSelectionPanel(feeder);
         contentPanel.add(partPanel);
@@ -147,20 +156,22 @@ public abstract class AbstractReferenceFeederConfigurationWizard
         pickRetryCount.setText("3");
         pickRetryCount.setColumns(3);
         generalPanel.add(pickRetryCount, "4, 6");
-        
-        lblFinalPickRotation = new JLabel("Final pick rotation");
-        generalPanel.add(lblFinalPickRotation, "2, 8");
-        
-        finalPickRotation = new JTextField();
-        finalPickRotation.setText("---");
-        finalPickRotation.setColumns(3);
-        finalPickRotation.setToolTipText("<-- Part rotation in tape + feeder rotation (read only)");
-        finalPickRotation.setEditable(false);
-        generalPanel.add(finalPickRotation, "4, 8");
 
-        btnRefreshFinalPickRotation = new JButton(refreshFinalPickRotationAction);
-        btnRefreshFinalPickRotation.setHideActionText(true);
-        generalPanel.add(btnRefreshFinalPickRotation, "6, 8");
+        if (includefinalRotation) {
+	        lblFinalPickRotation = new JLabel("Final pick rotation");
+	        generalPanel.add(lblFinalPickRotation, "2, 8");
+        
+	        finalPickRotation = new JTextField();
+	        finalPickRotation.setText("---");
+	        finalPickRotation.setColumns(3);
+	        finalPickRotation.setToolTipText("<-- Part rotation in tape + feeder rotation (read only)");
+	        finalPickRotation.setEditable(false);
+	        generalPanel.add(finalPickRotation, "4, 8");
+	
+	        btnRefreshFinalPickRotation = new JButton(refreshFinalPickRotationAction);
+	        btnRefreshFinalPickRotation.setHideActionText(true);
+	        generalPanel.add(btnRefreshFinalPickRotation, "6, 8");
+        }
         
         if (includePickLocation) {
             panelLocation = new JPanel();

@@ -32,7 +32,13 @@ public class ReferenceFeederConfigurationWizard
     }
     
     public ReferenceFeederConfigurationWizard(ReferenceFeeder feeder, boolean includePickLocation) {
-        super(feeder, includePickLocation);
+        super(feeder, includePickLocation, false);
+        this.feeder = feeder;
+    }
+    
+    public ReferenceFeederConfigurationWizard(ReferenceFeeder feeder, 
+    		boolean includePickLocation, boolean includefinalRotation) {
+        super(feeder, includePickLocation, includefinalRotation);
         this.feeder = feeder;
     }
 }

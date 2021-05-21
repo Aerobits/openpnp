@@ -127,7 +127,7 @@ public class ReferenceStripFeederConfigurationWizard
 
 
     public ReferenceStripFeederConfigurationWizard(ReferenceStripFeeder feeder) {
-    	super(feeder, false);
+    	super(feeder, false, true);
         this.feeder = feeder;
         
 //        panelPart = new FeederPartSelectionPanel(feeder);
