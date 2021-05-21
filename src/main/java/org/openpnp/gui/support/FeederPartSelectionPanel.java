@@ -6,7 +6,10 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -15,6 +18,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
 import org.apache.commons.logging.Log;
+import org.openpnp.gui.MainFrame;
 import org.openpnp.gui.support.PartsComboBoxModel.FILTER_TYPE;
 import org.openpnp.model.Board;
 import org.openpnp.model.Configuration;
@@ -55,6 +59,8 @@ public class FeederPartSelectionPanel extends JPanel{
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
+                FormSpecs.DEFAULT_COLSPEC,
+                FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC},
             new RowSpec[] {
                 FormSpecs.RELATED_GAP_ROWSPEC,
@@ -62,7 +68,19 @@ public class FeederPartSelectionPanel extends JPanel{
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC}));
 	
+        JLabel lblPart = new JLabel("Part");
+		add(lblPart, "2, 2, right, default");
+
         partsComboBoxModel = new PartsComboBoxModel();
+    	comboBoxPart = new JComboBox();
+		comboBoxPart.setModel(partsComboBoxModel);
+		comboBoxPart.setRenderer(new IdentifiableListCellRenderer<Part>());
+		comboBoxPart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				updatePartInfo(e);
+			}
+		});
+		add(comboBoxPart, "4, 2, left, default");
 
 		JLabel lblShowFilter = new JLabel("Show filter: ");
 		add(lblShowFilter, "6, 2, right, default");
@@ -80,23 +98,14 @@ public class FeederPartSelectionPanel extends JPanel{
 		add(rbShowPartJob, "10, 2, center, default");
 		add(rbShowPartUnused, "12, 2, center, default");
 
+		JButton btnShowPart = new JButton(showPartAction);
+		add(btnShowPart, "14, 2, left, default");
+
 		rbShowPartAll.addActionListener(radioButtonsAction);
 		rbShowPartJob.addActionListener(radioButtonsAction);
 		rbShowPartUnused.addActionListener(radioButtonsAction);
 
-		JLabel lblPart = new JLabel("Part");
-		add(lblPart, "2, 2, right, default");
-
-		comboBoxPart = new JComboBox();
-		comboBoxPart.setModel(partsComboBoxModel);
-		comboBoxPart.setRenderer(new IdentifiableListCellRenderer<Part>());
-		comboBoxPart.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				updatePartInfo(e);
-			}
-		});
-		add(comboBoxPart, "4, 2, left, default");
-
+		
 		lblPartInfo = new JLabel("");
 		add(lblPartInfo, "4, 4, left, default");
 		
@@ -129,6 +138,20 @@ public class FeederPartSelectionPanel extends JPanel{
 			partsComboBoxModel.setSelectedItem(feeder.getPart());
 		}
 	};
+	
+
+    public final Action showPartAction = new AbstractAction() {
+        {
+            putValue(SMALL_ICON, Icons.editFeeder);
+            putValue(NAME, "Show feeder's part");
+            putValue(SHORT_DESCRIPTION, "Show feeder's associated part definition.");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+            MainFrame.get().getPartsTab().showPartForFeeder(feeder);
+        }
+    };
 	
 	private void updatePartInfo(ActionEvent e) {
 		int count = 0;

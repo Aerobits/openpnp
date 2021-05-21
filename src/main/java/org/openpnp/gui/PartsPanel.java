@@ -266,6 +266,30 @@ public class PartsPanel extends JPanel implements WizardContainer {
         Configuration.get().getBus().register(this);
     }
 
+    /**
+     * Activate the Parts tab and show the Part for the specified Feeder. 
+     * 
+     * @param feeder
+     */
+    public void showPartForFeeder(Feeder feeder) {
+        MainFrame.get().showTab("Parts");
+        searchTextField.setText("");
+        cbShowOnlyPartsUsedInJob.setSelected(false);
+        filterParts();
+
+        Part part = feeder.getPart();
+
+        table.getSelectionModel().clearSelection();
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            if (tableModel.getPart(i) == part) {
+                int index = table.convertRowIndexToView(i);
+                table.getSelectionModel().setSelectionInterval(index, index);
+                table.scrollRectToVisible(new Rectangle(table.getCellRect(index, 0, true)));
+                break;
+            }
+        }
+    }
+    
     private Part getSelection() {
         List<Part> selections = getSelections();
         if (selections.size() != 1) {
