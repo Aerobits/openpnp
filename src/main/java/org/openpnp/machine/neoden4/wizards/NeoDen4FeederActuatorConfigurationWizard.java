@@ -188,7 +188,7 @@ public class NeoDen4FeederActuatorConfigurationWizard extends AbstractActuatorCo
         addWrappedBinding(actuator, "feederId", feederIdTextField, "text", intConverter);
         addWrappedBinding(actuator, "feedStrength", feedStrengthTextField, "text", intConverter);
         addWrappedBinding(actuator, "peelStrength", peelStrengthTextField, "text", intConverter);
-        addWrappedBinding(actuator, "feedLength", feedLengthTextField, "text", intConverter);
+//        addWrappedBinding(actuator, "feedLength", feedLengthTextField, "text", intConverter);
         addWrappedBinding(actuator, "peelLength", peelLengthTextField, "text", intConverter);
         
         ComponentDecorators.decorateWithAutoSelect(nameTf);

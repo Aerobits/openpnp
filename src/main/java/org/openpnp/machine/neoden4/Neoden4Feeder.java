@@ -15,7 +15,6 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.wizards.Neoden4FeederConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceFeeder;
 import org.openpnp.model.Configuration;
-import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.model.Rectangle;
@@ -25,7 +24,6 @@ import org.openpnp.spi.Head;
 import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.PropertySheetHolder;
 import org.openpnp.spi.VisionProvider;
-import org.openpnp.util.Utils2D;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
@@ -35,40 +33,20 @@ import org.simpleframework.xml.core.Persist;
 public class Neoden4Feeder extends ReferenceFeeder {
 
     private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
-
-    @Element
-    protected Location feedStartLocation = new Location(LengthUnit.Millimeters);
-    
-    @Element
-    protected Location feedEndLocation = new Location(LengthUnit.Millimeters);
-    
-    @Element(required = false)
-    private Length partPitch = new Length(4, LengthUnit.Millimeters);
-    
-    @Element(required = false)
-    protected double feedSpeed = 1.0;
     
     @Attribute(required = false)
     protected String actuatorName;
-    
-    @Attribute(required = false)
-    protected String peelOffActuatorName;
     
     @Element(required = false)
     protected Vision vision = new Vision();
 
     protected Location pickLocation;
 
-    private double feededCount = 0;
-    private double partsPitchX = -2; //-2mm for 2 mm part pitch (2 parts per feed)
-    private double partsPitchY = 0;
-	
     /*
      * visionOffset contains the difference between where the part was expected to be and where it
      * is. Subtracting these offsets from the pickLocation produces the correct pick location.
      */
     protected Location visionOffset;
-    protected Location partPick;
 
     @Override
     public Location getPickLocation() throws Exception {
@@ -77,12 +55,7 @@ public class Neoden4Feeder extends ReferenceFeeder {
         }
 
         if (vision.isEnabled() && visionOffset != null) {
-			if (partPitch.convertToUnits(LengthUnit.Millimeters).getValue() == 2 && partPick != null) {
-				return pickLocation.subtract(visionOffset).add(partPick);
-			}
-			else {
-				return pickLocation.subtract(visionOffset);
-			}
+			return pickLocation.subtract(visionOffset);
         }
 
         return pickLocation;
@@ -96,84 +69,21 @@ public class Neoden4Feeder extends ReferenceFeeder {
             throw new Exception("No actuator name set.");
         }
 
-
         Head head = nozzle.getHead();
 
-        Actuator actuator =  Configuration.get().getMachine().getActuatorByName(actuatorName);
-
-        if (actuator == null) {
-            throw new Exception(String.format("No Actuator found with name %s on feed Head %s",
-                    actuatorName, head.getName()));
-        }
-
-		Actuator peelOffActuator = null;
-
-		if (peelOffActuatorName != null) {
-			peelOffActuator =  Configuration.get().getMachine().getActuatorByName(peelOffActuatorName);
+		Actuator actuator = Configuration.get().getMachine().getActuatorByName(actuatorName);
+		if (actuator == null) {
+			throw new Exception(
+					String.format("No Actuator found with name %s on feed Head %s", actuatorName, head.getName()));
 		}
 
-        head.moveToSafeZ();
+        // Actuate actuator 
+    	actuator.actuate(getPart().getPitchInTape());
 
-        pickLocation = this.location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
-
-        if (feededCount == 0) {
-            Location feedStartLocation = this.feedStartLocation;
-            Location feedEndLocation = this.feedEndLocation;
-
-		    for (double i = partPitch.convertToUnits(LengthUnit.Millimeters).getValue(); i > 0; i=i-4) {  // perform multiple feeds if required
-		    
-	            // Move the actuator to the feed start location.
-	            actuator.moveTo(feedStartLocation.derive(null, null, Double.NaN, Double.NaN));
-		    
-	            // enable actuator (may do nothing)
-		    	actuator.actuate(true);
-		    
-	            // Push the lever
-	            //actuator.moveTo(feedEndLocation, feedSpeed * actuator.getHead().getMachine().getSpeed());
-		    
-			    // Start the take up actuator
-		    	if (peelOffActuator != null) {
-		    		peelOffActuator.actuate(true);
-		    	}
-	            // Now move back to the start location to move the tape.
-	            actuator.moveTo(feedStartLocation.derive(null, null, Double.NaN, Double.NaN));
-		    
-			    // Stop the take up actuator
-		    	if (peelOffActuator != null) {
-		    		peelOffActuator.actuate(false);
-		    	}
-		    
-	            // disable actuator
-		    	actuator.actuate(false);
-			}
-
-	        if (partPitch.convertToUnits(LengthUnit.Millimeters).getValue() == 2) {
-				feededCount = 2;
-	        }
-        } 
-        else {
-			Logger.debug("Multi parts Lever feeder: skipping feed " + feededCount);
-        }
-
-
-        head.moveToSafeZ();
-
-		if (feededCount > 0) {
-			feededCount--;
-			if (feededCount > 0) {
-				partPick = new Location(LengthUnit.Millimeters, partsPitchX * feededCount,
-						partsPitchY * feededCount, 0, 0);
-			} 
-			else {
-				partPick = null;
-			}
-		}
-
+    	// Calculate vision offset
         if (vision.isEnabled()) {
             visionOffset = getVisionOffsets(head, location);
-
             Logger.debug("final visionOffsets " + visionOffset);
-
             Logger.debug("Modified pickLocation {}", pickLocation.subtract(visionOffset));
         }
     }
@@ -181,6 +91,7 @@ public class Neoden4Feeder extends ReferenceFeeder {
     // TODO: Throw an Exception if vision fails.
     private Location getVisionOffsets(Head head, Location pickLocation) throws Exception {
         Logger.debug("getVisionOffsets({}, {})", head.getName(), pickLocation);
+        
         // Find the Camera to be used for vision
         Camera camera = null;
         for (Camera c : head.getCameras()) {
@@ -278,59 +189,15 @@ public class Neoden4Feeder extends ReferenceFeeder {
 			visionOffset = null;
 			Logger.debug("resetVisionOffsets " + visionOffset);
 		}
-
-		partPick = null;
 	}
 
-    public Location getFeedStartLocation() {
-        return feedStartLocation;
-    }
-
-    public void setFeedStartLocation(Location feedStartLocation) {
-        this.feedStartLocation = feedStartLocation;
-    }
-
-    public Location getFeedEndLocation() {
-        return feedEndLocation;
-    }
-
-    public void setFeedEndLocation(Location feedEndLocation) {
-        this.feedEndLocation = feedEndLocation;
-    }
-
-    public Length getPartPitch() {
-        return partPitch;
-    }
-
-    public void setPartPitch(Length partPitch) {
-        this.partPitch = partPitch;
-    }
-
-    public Double getFeedSpeed() {
-        return feedSpeed;
-    }
-
-    public void setFeedSpeed(Double feedSpeed) {
-        this.feedSpeed = feedSpeed;
-    }
-
-    public String getActuatorName() {
+	public String getActuatorName() {
         return actuatorName;
     }
 
     public void setActuatorName(String actuatorName) {
         String oldValue = this.actuatorName;
         this.actuatorName = actuatorName;
-        propertyChangeSupport.firePropertyChange("actuatorName", oldValue, actuatorName);
-    }
-
-    public String getPeelOffActuatorName() {
-        return peelOffActuatorName;
-    }
-
-    public void setPeelOffActuatorName(String actuatorName) {
-        String oldValue = this.peelOffActuatorName;
-        this.peelOffActuatorName = actuatorName;
         propertyChangeSupport.firePropertyChange("actuatorName", oldValue, actuatorName);
     }
 

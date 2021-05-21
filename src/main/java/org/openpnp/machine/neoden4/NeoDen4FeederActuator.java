@@ -60,9 +60,6 @@ public class NeoDen4FeederActuator extends ReferenceActuator{
     @Attribute(required = true)
     private int peelStrength = 30;
     
-//    @Attribute(required = true)   
-//    private int feedLength = 2;
-    
     @Attribute(required = true) 
     private int peelLength = 100; // 100% -> 5*feedLength
     
@@ -78,16 +75,6 @@ public class NeoDen4FeederActuator extends ReferenceActuator{
     ReferenceMachine getMachine() {
     	return (ReferenceMachine) Configuration.get().getMachine();
     }
-    
-//	@Override
-//	public void actuate(boolean on) throws Exception {
-//		if (on == true) {
-//			Logger.debug("{}.actuate({})", getName(), on);
-//			NeoDen4Driver driver = (NeoDen4Driver) getDriver();
-//			driver.feed(feederId, feedStrength, feedLength);
-//			driver.peel(peelerId, peelStrength, (int) ((peelLength / 100.0) * 5 * feedLength));
-//		}
-//	}
 	
 	@Override
 	public void actuate(double feedLength) throws Exception {
