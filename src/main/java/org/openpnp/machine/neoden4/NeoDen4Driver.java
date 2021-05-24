@@ -1,6 +1,8 @@
 package org.openpnp.machine.neoden4;
 
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -450,14 +452,24 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
       
     }
 
-    @Override
-    public void setGlobalOffsets(ReferenceMachine machine, AxesLocation location)
-            throws Exception {
-    	
-    	globalOffsetX = location.getCoordinate(location.getAxis(Axis.Type.X)) - this.x + globalOffsetX;
-    	globalOffsetY = location.getCoordinate(location.getAxis(Axis.Type.Y)) - this.y + globalOffsetY;
-    	Logger.debug(String.format("Set global offset to %.3f,%.3f", globalOffsetX, globalOffsetY));
-    }
+	@Override
+	public void setGlobalOffsets(ReferenceMachine machine, AxesLocation location) throws Exception {
+
+		globalOffsetX = location.getCoordinate(location.getAxis(Axis.Type.X)) - this.x + globalOffsetX;
+		globalOffsetY = location.getCoordinate(location.getAxis(Axis.Type.Y)) - this.y + globalOffsetY;
+		Logger.debug(String.format("Set global offset to %.3f,%.3f", globalOffsetX, globalOffsetY));
+
+		// Log global offsets to file
+		try {
+			File configurationDirectory = Configuration.get().getConfigurationDirectory();
+			File logFile = new File(configurationDirectory, "global_offsets.log");
+			FileWriter fr = new FileWriter(logFile, true);
+			fr.append(String.format("X: %f\tY: %f\n", 1.234, 4.56));
+			fr.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
     @Override
     public AxesLocation getReportedLocation(long timeout) throws Exception {
