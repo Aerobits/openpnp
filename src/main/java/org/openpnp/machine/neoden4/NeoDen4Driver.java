@@ -4,6 +4,8 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -450,7 +452,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         
         isAlreadyHomed = true;
       
-    }
+	}
 
 	@Override
 	public void setGlobalOffsets(ReferenceMachine machine, AxesLocation location) throws Exception {
@@ -464,9 +466,12 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 			File configurationDirectory = Configuration.get().getConfigurationDirectory();
 			File logFile = new File(configurationDirectory, "global_offsets.log");
 			FileWriter fr = new FileWriter(logFile, true);
-			fr.append(String.format("X: %f\tY: %f\n", 1.234, 4.56));
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+			LocalDateTime now = LocalDateTime.now();
+			fr.append(String.format("%s\tX: %f\tY: %f\n", dtf.format(now), globalOffsetX, globalOffsetY));
 			fr.close();
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
