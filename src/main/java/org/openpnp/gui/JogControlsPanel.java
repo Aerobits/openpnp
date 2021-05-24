@@ -27,6 +27,7 @@ import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -55,6 +56,7 @@ import org.openpnp.model.Length;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.model.Motion.MotionOption;
+import org.openpnp.scripting.Scripting;
 import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Head;
 import org.openpnp.spi.HeadMountable;
@@ -439,7 +441,20 @@ public class JogControlsPanel extends JPanel {
 
         JButton btnDiscard = new JButton(discardAction);
         panelSpecial.add(btnDiscard);
+        
+        // Add buttons to run each script from /scripts/special directory
+        File specialScriptsDir = new File(configuration.getScripting().getScriptsDirectory(), "special");
+        if (! specialScriptsDir.exists()){
+        	specialScriptsDir.mkdir();
+        }
 
+        String[] specialScripts = specialScriptsDir.list();
+        for (String script : specialScripts) {
+        	JButton btnRunScript = new JButton(script);
+        	btnRunScript.addActionListener(runScriptAction);
+        	panelSpecial.add(btnRunScript);
+        }
+        
         panelActuators = new JPanel();
         tabbedPane_1.addTab(Translations.getString("JogControlsPanel.Tab.Actuators"), null, panelActuators, null); //$NON-NLS-1$
         panelActuators.setLayout(new WrapLayout(WrapLayout.LEFT));
@@ -648,6 +663,22 @@ public class JogControlsPanel extends JPanel {
             });
         }
     };
+
+	@SuppressWarnings("serial")
+	public Action runScriptAction = new AbstractAction() { // $NON-NLS-1$
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			try {
+				String scriptPath = String.format("%s/special/%s", 
+						configuration.getScripting().getScriptsDirectory(),
+						arg0.getActionCommand());
+				configuration.getScripting().execute(scriptPath);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	};
 
     @SuppressWarnings("serial")
     public Action raiseIncrementAction = new AbstractAction(Translations.getString("JogControlsPanel.Action.RaiseJogIncrement")) { //$NON-NLS-1$
