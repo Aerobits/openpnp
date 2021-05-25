@@ -13,6 +13,7 @@ import org.apache.commons.io.IOUtils;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.RotatedRect;
 import org.openpnp.gui.MainFrame;
+import org.openpnp.logging.CalibrationLogger;
 import org.openpnp.model.AbstractModelObject;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Length;
@@ -740,6 +741,12 @@ public class ReferenceNozzleTipCalibration extends AbstractModelObject {
             // setting to false in the very end to prevent endless calibration repetitions if calibration was not successful (pipeline not well or similar) and the nozzle is commanded afterwards somewhere else (where the calibration is asked for again ...)
             calibrating = false;
         }
+
+        // Log calibration values
+		String logNozzleStr = String.format("%s CALIBRATION: ", nozzle.getNozzleTip().getName());
+		logNozzleStr += getCalibrationInformation(nozzle);
+//		logNozzleStr += nozzle.getNozzleTip().getCalibration(). .toString();
+		CalibrationLogger.addToLog(logNozzleStr);
     }
 
     public static void resetAllNozzleTips() {

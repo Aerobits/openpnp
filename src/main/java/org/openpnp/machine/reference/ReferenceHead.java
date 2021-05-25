@@ -26,6 +26,7 @@ import javax.swing.Action;
 
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
 import org.openpnp.gui.support.Wizard;
+import org.openpnp.logging.CalibrationLogger;
 import org.openpnp.machine.reference.psh.ActuatorsPropertySheetHolder;
 import org.openpnp.machine.reference.psh.CamerasPropertySheetHolder;
 import org.openpnp.machine.reference.psh.NozzlesPropertySheetHolder;
@@ -96,6 +97,19 @@ public class ReferenceHead extends AbstractHead {
         super.home();
         // Let everybody know.
         getMachine().fireMachineHeadActivity(this);
+        
+        
+        // Log calibration values
+		String logNozzleStr = "NOZZLE OFFSETS:";
+		for (Nozzle n : getNozzles()) {
+			Location headOffsets = ((ReferenceNozzle) n).getHeadOffsets();
+			logNozzleStr += String.format("\t%s -> X: %f, Y: %f", n.getName(), headOffsets.getX(), headOffsets.getY());
+		}
+		CalibrationLogger.addToLog(logNozzleStr);
+
+		Location upLookingLocation = getDefaultCamera().getLocation();
+		String logUpLookingStr = String.format("UP-LOOKING LOCATION: X: %f, Y: %f",upLookingLocation.getX(), upLookingLocation.getY());
+		CalibrationLogger.addToLog(logUpLookingStr);
     }
 
     @Override

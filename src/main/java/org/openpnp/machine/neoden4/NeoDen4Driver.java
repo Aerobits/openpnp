@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
+import org.openpnp.logging.CalibrationLogger;
 import org.openpnp.machine.neoden4.wizards.Neoden4DriverConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceActuator;
 import org.openpnp.machine.reference.ReferenceHead;
@@ -411,6 +412,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     	
     	//comment this to force neoden home every time
     	if(isAlreadyHomed) {
+            CalibrationLogger.addToLog("\n------------ SOFT HOME ------------\n");    	
     		return;
     	}
     	
@@ -450,8 +452,8 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         this.x = homeLocation.getCoordinate(homeLocation.getAxis(this, Axis.Type.X), units);
         this.y = homeLocation.getCoordinate(homeLocation.getAxis(this, Axis.Type.Y), units);
         
-        isAlreadyHomed = true;
-      
+        isAlreadyHomed = true;	
+        CalibrationLogger.addToLog("\n====================== HARD HOME ======================\n");    	
 	}
 
 	@Override
@@ -462,18 +464,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 		Logger.debug(String.format("Set global offset to %.3f,%.3f", globalOffsetX, globalOffsetY));
 
 		// Log global offsets to file
-		try {
-			File configurationDirectory = Configuration.get().getConfigurationDirectory();
-			File logFile = new File(configurationDirectory, "global_offsets.log");
-			FileWriter fr = new FileWriter(logFile, true);
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-			LocalDateTime now = LocalDateTime.now();
-			fr.append(String.format("%s\tX: %f\tY: %f\n", dtf.format(now), globalOffsetX, globalOffsetY));
-			fr.close();
-		} 
-		catch (IOException e) {
-			e.printStackTrace();
-		}
+		CalibrationLogger.addToLog(String.format("GLOBAL OFFSETS: X: %f, Y: %f", globalOffsetX, globalOffsetY));
 	}
 
     @Override
