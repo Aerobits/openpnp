@@ -18,6 +18,17 @@ public class MatView extends JComponent {
     static final boolean HIGH_QUALITY_RENDERING = true;
 
     private BufferedImage image;
+    
+    private Double zoom = 1.0;
+
+	public void setZoom(Double val) {
+		if (val >= 1.0 && val <= 4.0)
+			this.zoom = val;
+	}
+
+	public Double getZoom() {
+		return this.zoom;
+	}
 
     public MatView() {
         setBackground(Color.black);
@@ -117,6 +128,10 @@ public class MatView extends JComponent {
             scaledHeight = (scaledWidth * aspectRatio);
         }
 
+        // Scale by user mouse scroll zoom
+        scaledHeight *= zoom;
+        scaledWidth *= zoom;
+
         int imageX = (int) (ins.left + (destWidth / 2) - (scaledWidth / 2));
         int imageY = (int) (ins.top + (destHeight / 2) - (scaledHeight / 2));
 
@@ -135,7 +150,9 @@ public class MatView extends JComponent {
             g2d.drawImage(image, t, null);
         }
         else {
-            g2d.drawImage(image, imageX, imageY, (int) scaledWidth, (int) scaledHeight, null);
+            g2d.drawImage(image, imageX, imageY, 
+            		(int) scaledWidth, 
+            		(int) scaledHeight, null);
         }
     }
 }

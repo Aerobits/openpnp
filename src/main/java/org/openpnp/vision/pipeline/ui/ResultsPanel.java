@@ -9,6 +9,8 @@ import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
@@ -133,7 +135,21 @@ public class ResultsPanel extends JPanel {
         JLabel matStatusLabel = new JLabel(" ");
         panel_1.add(matStatusLabel, BorderLayout.SOUTH);
         
+		matView.addMouseWheelListener(new MouseWheelListener() {
+
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				if (e.getWheelRotation() < 0) {
+					matView.setZoom(matView.getZoom() + 0.1);
+				} else {
+					matView.setZoom(matView.getZoom() - 0.1);
+				}
+				matView.repaint();
+			}
+		});
+        
         matView.addMouseMotionListener(new MouseAdapter() {
+        	
             @Override
             public void mouseMoved(MouseEvent e) {
                 Color color = robot.getPixelColor(e.getXOnScreen(), e.getYOnScreen());
