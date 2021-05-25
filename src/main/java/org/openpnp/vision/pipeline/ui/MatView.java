@@ -75,6 +75,10 @@ public class MatView extends JComponent {
             scaledHeight = (scaledWidth * aspectRatio);
         }
 
+        // Scale by user mouse scroll zoom
+        scaledHeight *= zoom;
+        scaledWidth *= zoom;
+
         int imageX = (int) (ins.left + (destWidth / 2) - (scaledWidth / 2));
         int imageY = (int) (ins.top + (destHeight / 2) - (scaledHeight / 2));
         
