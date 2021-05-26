@@ -84,7 +84,7 @@ public class Neoden4Feeder extends ReferenceFeeder {
         if (vision.isEnabled()) {
             visionOffset = getVisionOffsets(head, location);
             Logger.debug("final visionOffsets " + visionOffset);
-            Logger.debug("Modified pickLocation {}", pickLocation.subtract(visionOffset));
+            Logger.debug("Modified pickLocation {}", getPickLocation());
         }
     }
 
@@ -124,12 +124,18 @@ public class Neoden4Feeder extends ReferenceFeeder {
         VisionProvider visionProvider = camera.getVisionProvider();
 
         // Convert AOI origin to top-left corner (Neoden4Camera changes resolution)
-        Rectangle aoi = getVision().getAreaOfInterest();
-        aoi.setX(aoi.getX() + (camera.getHeight() / 2));
-        aoi.setY(aoi.getY() + (camera.getHeight() / 2));
+        Rectangle vision_aoi = getVision().getAreaOfInterest();
+		Rectangle aoi = new Rectangle(
+				vision_aoi.getX() + (camera.getWidth() / 2), 
+				vision_aoi.getY() + (camera.getHeight() / 2), 
+				vision_aoi.getWidth(), 
+				vision_aoi.getHeight());
 
 		// Perform the template match
 		Logger.debug("Perform template match.");
+		Logger.debug(String.format("AOI X:%d, Y:%d, W:%d, H:%d",
+				aoi.getX(), aoi.getY(), aoi.getWidth(), aoi.getHeight()));
+		
 		Point[] matchingPoints = visionProvider.locateTemplateMatches(
 				aoi.getX(), aoi.getY(), aoi.getWidth(), aoi.getHeight(), 
 				0, 0, vision.getTemplateImage());

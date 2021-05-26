@@ -357,7 +357,9 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
 					// Convert coordinate origin back to top left
 					cameraView.setSelection(
 							r.getX() + (camera.getHeight() / 2), 
-							r.getY() + (camera.getHeight() / 2), r.getWidth(), r.getHeight());
+							r.getY() + (camera.getHeight() / 2), 
+							r.getWidth(), 
+							r.getHeight());
 				}
 			});
         }
@@ -378,8 +380,8 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
 
 				// Convert ROI origin to center instead of top left corner,
 				// because of Neoden4Camera resolution changes
-				rect.x = rect.x - (camera.getHeight() / 2);
-				rect.y = rect.y - (camera.getHeight() / 2);
+				rect.x = rect.x - (camera.getHeight() / 2); // - (rect.width/2);
+				rect.y = rect.y - (camera.getHeight() / 2); // - (rect.height/2);
 
 				feeder.getVision()
 						.setAreaOfInterest(new org.openpnp.model.Rectangle(rect.x, rect.y, rect.width, rect.height));
