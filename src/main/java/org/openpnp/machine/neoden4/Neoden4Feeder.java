@@ -125,8 +125,8 @@ public class Neoden4Feeder extends ReferenceFeeder {
 
         // Convert AOI origin to top-left corner (Neoden4Camera changes resolution)
         Rectangle aoi = getVision().getAreaOfInterest();
-        aoi.setX(aoi.getX() + (1024 / 2));
-        aoi.setY(aoi.getY() + (1024 / 2));
+        aoi.setX(aoi.getX() + (camera.getHeight() / 2));
+        aoi.setY(aoi.getY() + (camera.getHeight() / 2));
 
 		// Perform the template match
 		Logger.debug("Perform template match.");
