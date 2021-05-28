@@ -22,6 +22,8 @@ import javax.swing.border.EmptyBorder;
 
 import org.openpnp.gui.JobPanel;
 import org.openpnp.gui.support.Helpers;
+import org.openpnp.model.BoardLocation;
+import org.pmw.tinylog.Logger;
 
 public class DlgPanelXOut extends JDialog {
     private final Action okAction = new SwingAction();
@@ -62,9 +64,12 @@ public class DlgPanelXOut extends JDialog {
         for (int i = 0; i < rows * cols; i++) {
             int x = i % cols;
             int y = i / cols;
-            String lbl = String.format("%d,%d", x + 1, rows - y);
+            int index = (rows - y - 1) * cols + x;
+            boolean isBoardEnabled = ((BoardLocation)jobPanel.getJob().getBoardLocations().get(index)).isEnabled();
+            String lbl = String.format("(%d, %d)", x + 1, rows - y);
             JCheckBox cb = new JCheckBox(lbl);
-            cb.putClientProperty("index", (rows - y - 1) * cols + x);
+            cb.setSelected(isBoardEnabled);
+            cb.putClientProperty("index", index);
             checkBoxPanel.add(cb);
         }
 
@@ -102,7 +107,7 @@ public class DlgPanelXOut extends JDialog {
             for (int i = 0; i < checkBoxPanel.getComponentCount(); i++) {
                 JCheckBox cb = (JCheckBox) checkBoxPanel.getComponent(i);
                 int index = (int) cb.getClientProperty("index");
-                jobPanel.getJob().getBoardLocations().get(index).setEnabled(!cb.isSelected());
+                jobPanel.getJob().getBoardLocations().get(index).setEnabled(cb.isSelected());
             }
 
             jobPanel.refresh();
