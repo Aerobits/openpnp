@@ -112,7 +112,7 @@ public class PartsPanel extends JPanel implements WizardContainer {
         this.configuration = configuration;
         this.frame = frame;
 
-        singleSelectionActionGroup = new ActionGroup(deletePartAction, pickPartAction, copyPartToClipboardAction);
+        singleSelectionActionGroup = new ActionGroup(deletePartAction, pickPartAction, copyPartToClipboardAction, showPackageAction);
         singleSelectionActionGroup.setEnabled(false);
         multiSelectionActionGroup = new ActionGroup(deletePartAction);
         multiSelectionActionGroup.setEnabled(false);
@@ -203,6 +203,10 @@ public class PartsPanel extends JPanel implements WizardContainer {
         JButton btnNewButton_1 = new JButton(pastePartToClipboardAction);
         btnNewButton_1.setHideActionText(true);
         toolBar.add(btnNewButton_1);
+        
+        JButton btnShowPackage = new JButton(showPackageAction);
+        btnShowPackage.setHideActionText(true);
+        toolBar.add(btnShowPackage);
 
         table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             @Override
@@ -489,6 +493,22 @@ public class PartsPanel extends JPanel implements WizardContainer {
             }
         }
     };
+    
+	public final Action showPackageAction = new AbstractAction() {
+		{
+			putValue(SMALL_ICON, Icons.arrowRight);
+			putValue(NAME, "Show Part's Package");
+            putValue(SHORT_DESCRIPTION, "Open part's package tab");
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			if (getSelection() != null) {
+				MainFrame.get().getPackagesTab().showPackageForPart(getSelection());
+			}
+		}
+	};
+    
 
     public final Action pastePartToClipboardAction = new AbstractAction() {
         {

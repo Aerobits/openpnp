@@ -21,6 +21,7 @@ package org.openpnp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Frame;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -68,6 +69,7 @@ import org.openpnp.model.Configuration;
 import org.openpnp.model.Package;
 import org.openpnp.model.Part;
 import org.openpnp.spi.Camera;
+import org.openpnp.spi.Feeder;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Serializer;
 
@@ -217,6 +219,29 @@ public class PackagesPanel extends JPanel {
                 }
             }
         });
+    }
+
+    /**
+     * Activate the Packages tab and show the Package for the specified Part. 
+     * 
+     * @param part
+     */
+    public void showPackageForPart(Part part) {
+        MainFrame.get().showTab("Packages");
+        searchTextField.setText("");
+
+        Package partsPackage = part.getPackage();
+
+        table.getSelectionModel().clearSelection();
+        
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            if (tableModel.getPackage(i) == partsPackage) {
+                int index = table.convertRowIndexToView(i);
+                table.getSelectionModel().setSelectionInterval(index, index);
+                table.scrollRectToVisible(new Rectangle(table.getCellRect(index, 0, true)));
+                break;
+            }
+        }
     }
 
     private Package getSelection() {
