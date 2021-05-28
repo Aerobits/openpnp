@@ -43,7 +43,7 @@ public class DlgPanelXOut extends JDialog {
         JPanel headerPanel = new JPanel();
         // headerPanel.setLayout(new FlowLayout());
         headerPanel.add(new JLabel(
-                "<html>Select the PCB to be DISABLED in the panel.<p>Note that the lower left panel is designated 1,1</html>"));
+                "<html>Select the PCB to be ENABLED in the panel.<p>Note that the lower left panel is designated 1,1</html>"));
         getRootPane().add(headerPanel);
 
         // Panel with Checkboxes
@@ -55,11 +55,9 @@ public class DlgPanelXOut extends JDialog {
         getRootPane().add(checkBoxPanel);
 
         // Checkboxes will be added to the grid as columns from upper left
-        // to lower right. The
-        // board locations are stored as a linear array from lower left to
-        // upper right. To help
-        // sort this out, we store the linear array offset with each
-        // checkbox so that we don't
+        // to lower right. The board locations are stored as a linear array 
+        // from lower left to upper right. To help sort this out, we store 
+        // the linear array offset with each checkbox so that we don't
         // have to deal with this mapping outside of the few lines below.
         for (int i = 0; i < rows * cols; i++) {
             int x = i % cols;
