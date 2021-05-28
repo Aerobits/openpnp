@@ -81,16 +81,23 @@ public class BoardLocationsTableModel extends AbstractTableModel {
         return columnTypes[columnIndex];
     }
 
+//    @Override
+//    public boolean isCellEditable(int rowIndex, int columnIndex) {
+//        if (job.isUsingPanel()) {
+//            if (rowIndex >= 1) {
+//                return false;
+//            }
+//        }
+//        return (columnIndex != 0);
+//    }
+
+
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        if (job.isUsingPanel()) {
-            if (rowIndex >= 1) {
-                return false;
-            }
-        }
-        return (columnIndex != 0);
+        return true;
     }
-
+    
+    
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         try {

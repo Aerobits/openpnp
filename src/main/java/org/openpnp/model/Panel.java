@@ -2,6 +2,7 @@ package org.openpnp.model;
 
 
 import org.openpnp.util.IdentifiableList;
+import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.ElementList;
 
@@ -133,40 +134,61 @@ public class Panel extends AbstractModelObject implements Identifiable {
     }
 
 
-    public void setLocation(Job job) {
+    public void setLocation(Job job) {    	
         BoardLocation rootPCB = job.getBoardLocations().get(0);
-
-        job.removeAllBoards();
-        job.addBoardLocation(rootPCB);
-
         double pcbWidthX = rootPCB.getBoard().getDimensions().getX();
         double pcbHeightY = rootPCB.getBoard().getDimensions().getY();
 
         for (int j = 0; j < getRows(); j++) {
             for (int i = 0; i < getColumns(); i++) {
+            	
                 // We already have board 0,0 in the list as this is the root
-                // PCB. No need to create it.
+                // PCB. No need to update it.
                 if (i == 0 && j == 0) {
                     continue;
                 }
+                                
+                // Update boards location
+                if (job.getBoardLocations().size() < (getRows()*getColumns())) {
 
-                // copy the existing rootpcb board
-                BoardLocation newPCB = new BoardLocation(rootPCB.getBoard());
-                newPCB.setCheckFiducials(rootPCB.isCheckFiducials());
-                newPCB.setSide(rootPCB.getSide());
-                newPCB.setBoardFile(rootPCB.getBoardFile());
-
-                // OFfset the sub PCB
-                newPCB.setLocation(rootPCB.getLocation()
-                        .add(new Location(Configuration.get().getSystemUnits(),
-                                (pcbWidthX + getXGap().getValue()) * i,
-                                (pcbHeightY + getYGap().getValue()) * j, 0, 0)));
-
-                // Rotate the sub PCB
-                newPCB.setLocation(newPCB.getLocation().rotateXyCenterPoint(rootPCB.getLocation(),
-                        rootPCB.getLocation().getRotation()));
-
-                job.addBoardLocation(newPCB);
+	                // copy the existing root pcb's board
+	                BoardLocation newPCB = new BoardLocation(rootPCB.getBoard());
+	                newPCB.setCheckFiducials(rootPCB.isCheckFiducials());
+	                newPCB.setEnabled(rootPCB.isEnabled());
+	                newPCB.setSide(rootPCB.getSide());
+	                newPCB.setBoardFile(rootPCB.getBoardFile());	
+	
+	                // Offset PCB
+	                newPCB.setLocation(rootPCB.getLocation().add(
+	                		new Location(Configuration.get().getSystemUnits(),
+	                				(pcbWidthX + getXGap().getValue()) * i,
+	                                (pcbHeightY + getYGap().getValue()) * j, 
+	                                0, 0)));
+	
+	                // Rotate PCB
+	                newPCB.setLocation(newPCB.getLocation().rotateXyCenterPoint(
+	                		rootPCB.getLocation(),
+	                        rootPCB.getLocation().getRotation()));
+	
+	                job.addBoardLocation(newPCB);
+                } 
+                else {
+                	// Only update
+                    BoardLocation panelBoardLocation = job.getBoardLocations().get(j*getRows()+i);
+                	
+                    // Offset PCB
+                	panelBoardLocation.setLocation(
+                			rootPCB.getLocation().add(new Location(
+                					Configuration.get().getSystemUnits(),
+	                                (pcbWidthX + getXGap().getValue()) * i,
+	                                (pcbHeightY + getYGap().getValue()) * j, 0, 0)));
+	
+	                // Rotate PCB
+                	panelBoardLocation.setLocation(
+                			panelBoardLocation.getLocation().rotateXyCenterPoint(
+                					rootPCB.getLocation(),
+                					rootPCB.getLocation().getRotation()));
+                }
             }
         }
     }
