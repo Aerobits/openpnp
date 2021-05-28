@@ -28,6 +28,7 @@ import org.opencv.core.RotatedRect;
 import org.openpnp.gui.MainFrame;
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
 import org.openpnp.gui.support.Wizard;
+import org.openpnp.machine.neoden4.Neoden4Camera;
 import org.openpnp.machine.reference.ReferenceFeeder;
 import org.openpnp.machine.reference.feeder.wizards.ReferenceLoosePartFeederConfigurationWizard;
 import org.openpnp.model.Location;
@@ -55,6 +56,19 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
     public void feed(Nozzle nozzle) throws Exception {
         Camera camera = nozzle.getHead()
                               .getDefaultCamera();
+        
+        
+        // Only for neoden4 camera hack that change image size
+		int oldCamWidth = camera.getWidth();
+		int oldCamHeight = camera.getHeight();
+		int oldCamShiftX = ((Neoden4Camera) camera).getShiftX();
+		int oldCamShiftY = ((Neoden4Camera) camera).getShiftY();
+
+		((Neoden4Camera) camera).setWidth(1024);
+		((Neoden4Camera) camera).setHeight(1024);
+		((Neoden4Camera) camera).setShiftX(0);
+		((Neoden4Camera) camera).setShiftY(0);   
+        
         // Move to the feeder pick location
         MovableUtils.moveToLocationAtSafeZ(camera, location);
         try (CvPipeline pipeline = getPipeline()) {
@@ -67,7 +81,12 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
                      .getCameraView(camera)
                      .showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()),
                              1000);
-        }
+		} finally {
+			((Neoden4Camera) camera).setWidth(oldCamWidth);
+			((Neoden4Camera) camera).setHeight(oldCamHeight);
+			((Neoden4Camera) camera).setShiftX(oldCamShiftX);
+			((Neoden4Camera) camera).setShiftY(oldCamShiftY);
+		}
     }
 
     private Location getPickLocation(CvPipeline pipeline, Camera camera, Nozzle nozzle)
