@@ -19,7 +19,7 @@ public class CalibrationLogger {
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 			LocalDateTime now = LocalDateTime.now();
 			
-			fr.append(String.format(String.format("\n%s\t%s", dtf.format(now), str)));
+			fr.append(String.format("%s\t%s%n", dtf.format(now), str));
 			fr.close();
 		} 
 		catch (IOException e) {
