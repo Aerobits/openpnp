@@ -498,23 +498,32 @@ public abstract class ReferenceCamera extends AbstractBroadcastingCamera impleme
             return mat;
         }
 
-        // See:
-        // http://stackoverflow.com/questions/22041699/rotate-an-image-without-cropping-in-opencv-in-c
+//        // See:
+//        // http://stackoverflow.com/questions/22041699/rotate-an-image-without-cropping-in-opencv-in-c
+//        Point center = new Point(mat.width() / 2D, mat.height() / 2D);
+//        Mat mapMatrix = Imgproc.getRotationMatrix2D(center, rotation, 1.0);
+//
+//        // determine bounding rectangle
+//        Rect bbox = new RotatedRect(center, mat.size(), rotation).boundingRect();
+//        // adjust transformation matrix
+//        double[] cx = mapMatrix.get(0, 2);
+//        double[] cy = mapMatrix.get(1, 2);
+//        cx[0] += bbox.width / 2D - center.x;
+//        cy[0] += bbox.height / 2D - center.y;
+//        mapMatrix.put(0, 2, cx);
+//        mapMatrix.put(1, 2, cy);
+//
+//        Mat dst = new Mat(bbox.width, bbox.height, mat.type());
+//        Imgproc.warpAffine(mat, dst, mapMatrix, bbox.size(), Imgproc.INTER_LINEAR);
+//        mat.release();
+        
+
+        // Rotate with image crop
         Point center = new Point(mat.width() / 2D, mat.height() / 2D);
         Mat mapMatrix = Imgproc.getRotationMatrix2D(center, rotation, 1.0);
 
-        // determine bounding rectangle
-        Rect bbox = new RotatedRect(center, mat.size(), rotation).boundingRect();
-        // adjust transformation matrix
-        double[] cx = mapMatrix.get(0, 2);
-        double[] cy = mapMatrix.get(1, 2);
-        cx[0] += bbox.width / 2D - center.x;
-        cy[0] += bbox.height / 2D - center.y;
-        mapMatrix.put(0, 2, cx);
-        mapMatrix.put(1, 2, cy);
-
-        Mat dst = new Mat(bbox.width, bbox.height, mat.type());
-        Imgproc.warpAffine(mat, dst, mapMatrix, bbox.size(), Imgproc.INTER_LINEAR);
+        Mat dst = new Mat(mat.width(), mat.height(), mat.type());
+        Imgproc.warpAffine(mat, dst, mapMatrix, mat.size(), Imgproc.INTER_LINEAR);
         mat.release();
 
         mapMatrix.release();
