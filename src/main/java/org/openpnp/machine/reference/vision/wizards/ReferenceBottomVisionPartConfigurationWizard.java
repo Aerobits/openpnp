@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -12,6 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import org.openpnp.gui.MainFrame;
+import org.openpnp.gui.support.DoubleConverter;
+import org.openpnp.gui.support.IntegerConverter;
 import org.openpnp.gui.support.AbstractConfigurationWizard;
 import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.machine.reference.vision.ReferenceBottomVision;
@@ -19,6 +22,8 @@ import org.openpnp.machine.reference.vision.ReferenceBottomVision.PartSettings;
 import org.openpnp.model.LengthUnit;
 import org.openpnp.model.Location;
 import org.openpnp.model.Part;
+import org.openpnp.spi.Axis;
+import org.openpnp.model.Configuration;
 import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.PartAlignment;
 import org.openpnp.util.UiUtils;
@@ -44,6 +49,8 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
     private JCheckBox chckbxUsePreciseAlign;
     private JComboBox comboBoxPreRotate;
     private JComboBox comboBoxMaxRotation;
+    private JComboBox comboBoxcheckPartSizeMethod;
+    private JTextField textPartSizeTolerance;
     
     public ReferenceBottomVisionPartConfigurationWizard(ReferenceBottomVision bottomVision,
             Part part) {
@@ -52,31 +59,33 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
         this.partSettings = bottomVision.getPartSettings(part);
 
         JPanel panel = new JPanel();
-        panel.setBorder(new TitledBorder(null, "General", TitledBorder.LEADING, TitledBorder.TOP,
-                null, null));
+        panel.setBorder(new TitledBorder(null, "General", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         contentPanel.add(panel);
-        panel.setLayout(new FormLayout(new ColumnSpec[] {
-                FormSpecs.RELATED_GAP_COLSPEC,
-                ColumnSpec.decode("right:default"),
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,},
-            new RowSpec[] {
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,
-                FormSpecs.RELATED_GAP_ROWSPEC,
-                FormSpecs.DEFAULT_ROWSPEC,}));
+        panel.setLayout(new FormLayout(
+                new ColumnSpec[] { 
+                		FormSpecs.RELATED_GAP_COLSPEC, 
+                		ColumnSpec.decode("right:default"),
+                        FormSpecs.RELATED_GAP_COLSPEC, 
+                        FormSpecs.DEFAULT_COLSPEC, 
+                        FormSpecs.RELATED_GAP_COLSPEC,
+                        FormSpecs.DEFAULT_COLSPEC, 
+                        FormSpecs.RELATED_GAP_COLSPEC, 
+                        FormSpecs.DEFAULT_COLSPEC, },
+                new RowSpec[] { 
+                		FormSpecs.RELATED_GAP_ROWSPEC, 
+                		FormSpecs.DEFAULT_ROWSPEC, 
+                		FormSpecs.RELATED_GAP_ROWSPEC,
+                        FormSpecs.DEFAULT_ROWSPEC, 
+                        FormSpecs.RELATED_GAP_ROWSPEC, 
+                        FormSpecs.DEFAULT_ROWSPEC,
+                        FormSpecs.RELATED_GAP_ROWSPEC, 
+                        FormSpecs.DEFAULT_ROWSPEC, 
+                        FormSpecs.RELATED_GAP_ROWSPEC,
+                        FormSpecs.DEFAULT_ROWSPEC, 
+                        FormSpecs.RELATED_GAP_ROWSPEC, 
+                        FormSpecs.DEFAULT_ROWSPEC,
+                        FormSpecs.RELATED_GAP_ROWSPEC, 
+                        FormSpecs.DEFAULT_ROWSPEC, }));
 
         JLabel lblEnabled = new JLabel("Enabled?");
         panel.add(lblEnabled, "2, 2");
@@ -143,10 +152,22 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
         comboBoxMaxRotation = new JComboBox(ReferenceBottomVision.MaxRotation.values());
         comboBoxMaxRotation.setToolTipText("Adjust for all parts, where only some minor offset is expected. Full for parts, where bottom vision detects pin 1");
         panel.add(comboBoxMaxRotation, "4, 10, fill, default");
+        
+        JLabel lblPartCheckType = new JLabel("Part size check");
+        panel.add(lblPartCheckType, "2, 12");
+
+        comboBoxcheckPartSizeMethod = new JComboBox(PartSettings.PartSizeCheckMethod.values());
+        panel.add(comboBoxcheckPartSizeMethod, "4, 12, fill, default");
+
+        JLabel lblPartSizeTolerance = new JLabel("Size tolerance (%)");
+        panel.add(lblPartSizeTolerance, "2, 14");
+
+        textPartSizeTolerance = new JTextField();
+        panel.add(textPartSizeTolerance, "4, 14, fill, default");
 
         chckbxUsePreciseAlign = new JCheckBox("Use precise alignment");
         chckbxUsePreciseAlign.setSelected(false);
-        panel.add(chckbxUsePreciseAlign, "4, 12");
+        panel.add(chckbxUsePreciseAlign, "8, 6");
     }
 
     private void testAlignment() throws Exception {
@@ -233,8 +254,11 @@ public class ReferenceBottomVisionPartConfigurationWizard extends AbstractConfig
 
     @Override
     public void createBindings() {
+    	IntegerConverter intConverter = new IntegerConverter();
         addWrappedBinding(partSettings, "enabled", enabledCheckbox, "selected");
         addWrappedBinding(partSettings, "useDefaultPipeline", chckbxUseDefaultPipeline, "selected");
+        addWrappedBinding(partSettings, "checkPartSizeMethod", comboBoxcheckPartSizeMethod, "selectedItem");
+        addWrappedBinding(partSettings, "checkSizeTolerancePercent", textPartSizeTolerance, "text", intConverter);
         addWrappedBinding(partSettings, "preRotateUsage", comboBoxPreRotate, "selectedItem");
         addWrappedBinding(partSettings, "maxRotation", comboBoxMaxRotation, "selectedItem");
         addWrappedBinding(partSettings, "usePreciseAlign", chckbxUsePreciseAlign, "selected");
