@@ -1219,21 +1219,41 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     private int getNozzleAirValue(int nozzleNum) throws Exception {
-        assert(nozzleNum >= 0);
-        assert(nozzleNum <= 3);
+		assert (nozzleNum >= 0);
+		assert (nozzleNum <= 3);
 
-        write(0x40);
-        expect(0x0c);
+		byte[] payload = { 0, 0, 0, 0 };
+		boolean success = false;
 
-        write(0x00);
-        expect(0x11);
+		for (int i = 0; i < 5; i++) {
+			try {
+				write(0x40);
+				expect(0x0c);
 
-        write(0x80);
-        expect(0x19);
+				write(0x00);
+				expect(0x11);
 
-        byte[] payload = readWithChecksum(8);
-        return payload[nozzleNum];
-    }
+				write(0x80);
+				expect(0x19);
+
+				payload = readWithChecksum(8);
+				success = true;
+				break;
+			} catch (Exception e) {
+				Thread.sleep(1000);
+				flushInput();
+				Logger.debug("Recovered getNozzleAirValue");
+				Thread.sleep(1000);
+			}
+		}
+
+		if (!success) {
+			throw new IOException("getNozzleAirValue error.");
+		} 
+		else {
+			return payload[nozzleNum];
+		}
+	}
 
     @Override
     public String actuatorRead(ReferenceActuator actuator) throws Exception {
