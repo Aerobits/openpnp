@@ -59,17 +59,20 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.openpnp.ConfigurationListener;
 import org.openpnp.Translations;
 import org.openpnp.events.BoardLocationSelectedEvent;
 import org.openpnp.events.JobLoadedEvent;
 import org.openpnp.events.PlacementSelectedEvent;
+import org.openpnp.gui.JobPlacementsPanel.TypeRenderer;
 import org.openpnp.gui.components.AutoSelectTextTable;
 import org.openpnp.gui.importer.BoardImporter;
 import org.openpnp.gui.panelization.DlgAutoPanelize;
@@ -197,6 +200,29 @@ public class JobPanel extends JPanel {
         table.setAutoCreateRowSorter(true);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setDefaultEditor(Side.class, new DefaultCellEditor(sidesComboBox));
+        
+        // Draw red background if board did not check fiducials
+		table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+					boolean hasFocus, int row, int col) {
+
+				boolean isPlacementsTransformed = tableModel.getBoardLocation(row).getPlacementTransform() == null;
+				
+				if (isPlacementsTransformed && (col == 4 || col == 5 || col == 6 || col == 7)) {
+					this.setForeground(Color.black);
+					this.setBackground(new Color(255, 157, 157));
+				} else {
+					this.setBackground(table.getBackground());
+					this.setForeground(table.getForeground());
+				}
+
+				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+				return this;
+			}
+		});
 
         table.getModel().addTableModelListener(new TableModelListener() {
             @Override
@@ -567,6 +593,7 @@ public class JobPanel extends JPanel {
         }
         return selections;
     }
+    
 
     /**
      * Checks if there are any modifications that need to be saved. Prompts the user if there are.
@@ -1577,7 +1604,7 @@ public class JobPanel extends JPanel {
         // Would be better to have property notifiers but this is going to have to do for now.
         repaint();
     };
-    
+        
     boolean isAllPlaced() {
     	for (BoardLocation boardLocation : job.getBoardLocations()) {
     	    if (!boardLocation.isEnabled()) {
