@@ -6,6 +6,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import javax.swing.AbstractAction;
@@ -20,6 +21,7 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
@@ -38,6 +40,8 @@ import org.openpnp.model.Configuration;
 import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Camera;
 import org.openpnp.util.UiUtils;
+import org.openpnp.util.VisionUtils;
+import org.python.modules.thread.thread;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -318,25 +322,43 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         }
     };
 
+
 	private Action actuateFeederAction = new AbstractAction("Actuate") {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+
 			UiUtils.messageBoxOnException(() -> {
 				String actuatorName = feeder.getActuatorName();
 				Actuator actuator = Configuration.get().getMachine().getActuatorByName(actuatorName);
+
 				if (actuator == null) {
 					MessageBoxes.errorBox(contentPanel, "Error",
 							String.format("Can't find actuator '%s'", actuatorName));
 				} else {
 
 					UiUtils.submitUiMachineTask(() -> {
+						// Actuate actuator
 						actuator.actuate(feeder.getPart().getPitchInTape());
+
+						// Refresh camera after 1s
+						Camera cam = Configuration.get().getMachine().getDefaultHead().getDefaultCamera();
+						if (cam != null) {
+							Timer timer = new Timer(1000, new ActionListener() {
+
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									cam.capture();
+								}
+							});
+							timer.setRepeats(false);
+							timer.start();
+						}
 					});
 				}
 			});
 		}
 	};
-
+	
     private Action selectAoiAction = new AbstractAction("Select") {
         @Override
         public void actionPerformed(ActionEvent arg0) {
