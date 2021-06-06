@@ -74,6 +74,8 @@ public class MultiFiducialBoardLocationProcess {
     private AffineTransform savedPlacementTransform;
     private MultiFiducialBoardLocationProperties props;
     
+    private boolean isCancelled = false;
+    
     FiducialLocator fiducialLocator = Configuration.get().getMachine().getFiducialLocator();
 
     public static class MultiFiducialBoardLocationProperties {
@@ -108,6 +110,11 @@ public class MultiFiducialBoardLocationProcess {
     }
 
     private void advance() {
+    	
+    	if(isCancelled == true) {
+    		finish();
+    	}
+    	
         boolean stepResult = true;
         
         if (step == 1) {
@@ -404,6 +411,8 @@ public class MultiFiducialBoardLocationProcess {
         jobPanel.refresh();
         
         mainFrame.hideInstructions();
+        
+        isCancelled = true;
     }
 
     private final ActionListener proceedActionListener = new ActionListener() {

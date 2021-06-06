@@ -19,26 +19,16 @@
 
 package org.openpnp.machine.neoden4;
 
-import java.awt.Graphics;
-import java.awt.RenderingHints;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorConvertOp;
-import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
-import java.net.URL;
 
 import org.opencv.core.Mat;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.wizards.Neoden4CameraConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceCamera;
-import org.openpnp.spi.Actuator;
 import org.openpnp.spi.PropertySheetHolder;
 import org.openpnp.util.OpenCvUtils;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
-
-import com.sun.jna.Native;
 
 
 /**
