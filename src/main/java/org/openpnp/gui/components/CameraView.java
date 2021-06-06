@@ -204,6 +204,8 @@ public class CameraView extends JComponent implements CameraListener {
     
     private boolean dragJogging = false;
     private boolean lightToggling = false;
+    private boolean refreshToggling = false;
+    
 
     
     private MouseEvent dragJoggingStart = null;
@@ -217,6 +219,11 @@ public class CameraView extends JComponent implements CameraListener {
     Color lightToggleActiveBgColor = new Color(0, 0, 0, 100);
     Color lightToggleInactiveColor = new Color(0, 0, 0, 200);
     Color lightToggleActiveColor = new Color(255, 255, 125, 200);
+    
+
+    private int refreshToggleSize = 40;
+    Color refreshToggleActiveColor = new Color(125, 255, 125);
+    
 
     long lastFrameReceivedTime = 0;
     MovingAverage fpsAverage = new MovingAverage(24);
@@ -705,6 +712,7 @@ public class CameraView extends JComponent implements CameraListener {
             if (!selectionEnabled) {
                 paintDragJogging(g2d);
                 paintLightToggle(g2d);
+                paintRefreshToggle(g2d);
             }
 
             if (viewingPlaneZ != null) {
@@ -801,6 +809,19 @@ public class CameraView extends JComponent implements CameraListener {
         double distance = Math.sqrt(Math.pow(x-x0, 2)+ Math.pow(y-y0, 2));
 
         return distance <= lightToggleSize/2;
+    }
+
+    private boolean isPointInsideRefreshToggle(int x, int y) {        
+        Insets ins = getInsets();
+        int width = getWidth() - ins.left - ins.right;
+        
+        return isPointInsideRectangle(
+        		x, 
+        		y, 
+        		width-refreshToggleSize, 
+        		lightToggleSize + 10,
+        		width, 
+        		lightToggleSize + 10 + refreshToggleSize);
     }
 
     private void drawCircle(Graphics2D g2d, int centerX, int centerY, int radius) {
@@ -942,6 +963,26 @@ public class CameraView extends JComponent implements CameraListener {
                         (int)(y0 + 0.5 + r1*Math.sin(Math.toRadians(angle))));
             }
         }
+    }
+    
+    private void paintRefreshToggle(Graphics2D g2d) {
+        Insets ins = getInsets();
+        int width = getWidth() - ins.left - ins.right;
+        int height = getHeight() - ins.top - ins.bottom;
+        
+        // Left-top corner
+        int x0 = width - refreshToggleSize;
+        int y0 = refreshToggleSize + 10;
+
+        if (isTogglingRefresh()) {
+            x0++;
+            y0++;
+        }
+        
+        g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2d.setColor(refreshToggleActiveColor);
+        g2d.drawRect(x0, y0, refreshToggleSize, refreshToggleSize);
+        g2d.drawRect(x0+refreshToggleSize/4, y0+refreshToggleSize/4, refreshToggleSize/2, refreshToggleSize/2);
     }
 
     private void paintSelection(Graphics2D g2d) {
@@ -1608,6 +1649,12 @@ public class CameraView extends JComponent implements CameraListener {
         });
     }
 
+    private void toggleRefresh(MouseEvent e) {
+        UiUtils.submitUiMachineTask(() -> {
+            camera.settleAndCapture();
+        });
+    }
+
     private void beginSelection(MouseEvent e) {
         // If we're not doing anything currently, we can start
         // a new operation.
@@ -1695,7 +1742,7 @@ public class CameraView extends JComponent implements CameraListener {
     }
     
     private void dragJoggingBegin(MouseEvent e) {
-        if (! isTogglingLight()) {
+        if (!isTogglingLight() && !isTogglingRefresh()) {
             this.dragJogging = true;
             this.dragJoggingStart = e;
             this.dragJoggingTarget = e;
@@ -1704,14 +1751,14 @@ public class CameraView extends JComponent implements CameraListener {
     }
     
     private void dragJoggingContinue(MouseEvent e) {
-        if (! isTogglingLight()) {
+    	 if (!isTogglingLight() && !isTogglingRefresh()) {
             this.dragJoggingTarget = e;
             repaint();
         }
     }
     
     private void dragJoggingEnd(MouseEvent e) {
-        if (! isTogglingLight()) {
+    	 if (!isTogglingLight() && !isTogglingRefresh()) {
             int startX = dragJoggingStart.getX();
             int startY = dragJoggingStart.getY();
             
@@ -1744,6 +1791,18 @@ public class CameraView extends JComponent implements CameraListener {
     private boolean isTogglingLight() {
         return lightToggling;
     }
+    
+    private void beginTogglingRefresh() {
+    	refreshToggling = true;
+        repaint();
+    }
+    private void endTogglingRefresh() {
+    	refreshToggling = false;
+        repaint();
+    }
+    private boolean isTogglingRefresh() {
+        return this.refreshToggling;
+    }
 
 
     private MouseListener mouseListener = new MouseAdapter() {
@@ -1774,6 +1833,9 @@ public class CameraView extends JComponent implements CameraListener {
             else if (isPointInsideLightToggle(e.getX(), e.getY())) {
                 beginTogglingLight();
             }
+            else if (isPointInsideRefreshToggle(e.getX(), e.getY())) {
+            	beginTogglingRefresh();
+            }
             else if (selectionEnabled) {
                 beginSelection(e);
             }
@@ -1790,10 +1852,14 @@ public class CameraView extends JComponent implements CameraListener {
             else if (isTogglingLight() && isPointInsideLightToggle(e.getX(), e.getY())) {
                 toggleLight(e);
             }
+            else if (isTogglingRefresh() && isPointInsideRefreshToggle(e.getX(), e.getY())) {
+            	toggleRefresh(e);
+            }
             else {
                 endSelection();
             }
             endTogglingLight();
+            endTogglingRefresh();
         }
     };
 
