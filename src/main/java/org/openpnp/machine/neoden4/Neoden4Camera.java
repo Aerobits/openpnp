@@ -19,14 +19,22 @@
 
 package org.openpnp.machine.neoden4;
 
+import java.awt.Graphics;
+import java.awt.RenderingHints;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
 import java.net.URL;
 
+import org.opencv.core.Mat;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.wizards.Neoden4CameraConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.spi.Actuator;
 import org.openpnp.spi.PropertySheetHolder;
+import org.openpnp.util.OpenCvUtils;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 
@@ -62,34 +70,36 @@ public class Neoden4Camera extends ReferenceCamera {
     
     
     private BufferedImage convertToRgb(BufferedImage image) {
-    	
-	    int iw = image.getWidth();
-	    int ih = image.getHeight();
-	
-	    BufferedImage imageOut = 
-	    	    new BufferedImage(iw, ih, BufferedImage.TYPE_INT_BGR);
+    	Mat mat = OpenCvUtils.toMat(image);
+	    return OpenCvUtils.toBufferedImage(OpenCvUtils.toRGB(mat));
 	    
-	    for (int y = 0; y < ih; y++) {
-	      for (int x = 0; x < iw; x++) {
-	        int pixel = image.getRGB(x, y);
-	        int red = (pixel >> 16) & 0xFF;
-	        int green = (pixel >> 8) & 0xFF;
-	        int blue = pixel & 0xFF;
-	        
-	        int col = (red << 16) | (green << 8) | blue;
-	        imageOut.setRGB(x, y, col);
-	        
-	      }
-	    }
-	    
-	    return imageOut;  
+//	    int iw = image.getWidth();
+//	    int ih = image.getHeight();
+//	
+//	    BufferedImage imageOut = 
+//	    	    new BufferedImage(iw, ih, BufferedImage.TYPE_INT_BGR);
+//	    
+//	    for (int y = 0; y < ih; y++) {
+//	      for (int x = 0; x < iw; x++) {
+//	        int pixel = image.getRGB(x, y);
+//	        int red = (pixel >> 16) & 0xFF;
+//	        int green = (pixel >> 8) & 0xFF;
+//	        int blue = pixel & 0xFF;
+//	        
+//	        int col = (red << 16) | (green << 8) | blue;
+//	        imageOut.setRGB(x, y, col);
+//	        
+//	      }
+//	    }
+//	    
+//	    return imageOut;  
     }
     
     private int lastWidth = 0;
     
 	@Override
 	public synchronized BufferedImage internalCapture() {
-		Logger.debug(String.format("internalCapture() [cameraId:%d], hashcode: %d", cameraId,Neoden4CameraHandler.getInstance().hashCode()));
+		Logger.debug(String.format("internalCapture() [cameraId:%d]", cameraId));
 		
 		long tStart = System.currentTimeMillis();
 		
@@ -100,35 +110,26 @@ public class Neoden4Camera extends ReferenceCamera {
 		
 		try {
 			if (lastWidth != width) {
-				Logger.debug(String.format("REFRESH = %d", cameraId));
+				Logger.debug(String.format("REFRESH [cameraId:%d]", cameraId));
 				resetCamera();
 				lastWidth = width;
 			}
 
-			long t2 = System.currentTimeMillis();
 			byte[] data = new byte[width * height];
 			
 			Thread.sleep(10);
-			Logger.debug(String.format("img_readAsy(%d, %d, %d)", cameraId, data.length, timeout));
 			int ret = Neoden4CameraHandler.getInstance().img_readAsy(cameraId, data, data.length, timeout);
-			Logger.debug(String.format("img_readAsy() ret = %d", ret));
-			Logger.debug(String.format("img_readAsy() done in: %d", System.currentTimeMillis() - t2));
-			
 			if (ret != 1) {
-				Logger.error(String.format("img_readAsy() ret = %d!!!", ret));
+				Logger.error(String.format("img_readAsy() ret = %d, [cameraId:%d]", ret, cameraId));
 				resetCamera();
 				return null;
 			}
 			BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 			img.getRaster().setDataElements(0, 0, width, height, data);
-
-//			long t5 = System.currentTimeMillis();
-//			BufferedImage imgRGB = convertToRgb(img);
-//			Logger.debug(String.format("convertToRgb done in: %d", System.currentTimeMillis() - t5));
-			
+			BufferedImage imgRGB = convertToRgb(img);
+		
 			Logger.debug(String.format("internalCapture() done in: %d", System.currentTimeMillis() - tStart));
-//			return imgRGB;
-			return img;
+			return imgRGB;
 		} 
 		catch (Exception e) {
 			e.printStackTrace();

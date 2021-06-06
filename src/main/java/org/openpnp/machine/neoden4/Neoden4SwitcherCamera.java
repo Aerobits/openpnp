@@ -33,14 +33,9 @@ public class Neoden4SwitcherCamera extends ReferenceCamera {
 		}
 		synchronized (switchers) {
 			if (switchers.get(switcher) != this) {
-				// If capturing image from different camera - wait for 1000ms
-                try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 				switchers.put(switcher, this);
 			}
+			
 			Neoden4Camera neodenCam = null;
 			for (Camera c : Configuration.get().getMachine().getAllCameras()) {
 				if (c instanceof Neoden4Camera) {
