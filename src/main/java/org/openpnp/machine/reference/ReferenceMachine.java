@@ -38,6 +38,7 @@ import org.openpnp.machine.neoden4.NeoDen4Driver;
 import org.openpnp.machine.neoden4.NeoDen4FeederActuator;
 import org.openpnp.machine.neoden4.Neoden4Camera;
 import org.openpnp.machine.neoden4.Neoden4Feeder;
+import org.openpnp.machine.neoden4.Neoden4SwitcherCamera;
 import org.openpnp.machine.rapidplacer.RapidFeeder;
 import org.openpnp.machine.reference.actuator.ThermistorToLinearSensorActuator;
 import org.openpnp.machine.reference.axis.ReferenceCamClockwiseAxis;
@@ -353,9 +354,10 @@ public class ReferenceMachine extends AbstractMachine {
     @Override
     public List<Class<? extends Camera>> getCompatibleCameraClasses() {
         List<Class<? extends Camera>> l = new ArrayList<>();
+        l.add(Neoden4Camera.class);
+        l.add(Neoden4SwitcherCamera.class);
         l.add(OpenPnpCaptureCamera.class);
         l.add(OpenCvCamera.class);
-        l.add(Neoden4Camera.class);
         l.add(Webcams.class);
         l.add(OnvifIPCamera.class);
         l.add(ImageCamera.class);

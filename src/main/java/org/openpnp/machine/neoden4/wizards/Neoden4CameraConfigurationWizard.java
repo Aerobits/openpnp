@@ -75,32 +75,6 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,}));
 
-        lblIP = new JLabel("Camera IP");
-        panelGeneral.add(lblIP, "2, 2, right, default");
-
-        ipTextField = new JTextField();
-        panelGeneral.add(ipTextField, "4, 2");
-        ipTextField.setColumns(16);
-
-        lbluseFor_ip = new JLabel("(IP)");
-        panelGeneral.add(lbluseFor_ip, "6, 2");
-        
-        lblCameraPort = new JLabel("Port");
-        lblCameraPort.setHorizontalAlignment(SwingConstants.TRAILING);
-        panelGeneral.add(lblCameraPort, "8, 2, right, default");
-        
-        cameraPortTextField = new JTextField();
-        cameraPortTextField.setColumns(16);
-        panelGeneral.add(cameraPortTextField, "10, 2");
-        
-        lblCameraID = new JLabel("Camera ID");
-        lblCameraID.setHorizontalAlignment(SwingConstants.TRAILING);
-        panelGeneral.add(lblCameraID, "2, 4, right, default");
-        
-        cameraIDTextField = new JTextField();
-        cameraIDTextField.setColumns(16);
-        panelGeneral.add(cameraIDTextField, "4, 4, fill, default");
-        
         lblTimeout = new JLabel("Timeout");
         lblTimeout.setHorizontalAlignment(SwingConstants.TRAILING);
         panelGeneral.add(lblTimeout, "2, 6, right, default");
@@ -197,8 +171,6 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
     @Override
     public void createBindings() {
         IntegerConverter intConverter = new IntegerConverter();
-        addWrappedBinding(camera, "hostPort", cameraPortTextField, "text", intConverter);
-        addWrappedBinding(camera, "cameraId", cameraIDTextField, "text", intConverter);
         addWrappedBinding(camera, "width", imageWidthTextField, "text", intConverter);
         addWrappedBinding(camera, "height", imageHeightTextField, "text", intConverter);
         addWrappedBinding(camera, "timeout", timeoutMillisTextField, "text", intConverter);
@@ -206,12 +178,6 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
         addWrappedBinding(camera, "gain", cameraGainTextField, "text", intConverter);
         addWrappedBinding(camera, "shiftX", shiftXTextField, "text", intConverter);
         addWrappedBinding(camera, "shiftY", shiftYTextField, "text", intConverter);
-    
-        // Should always be last so that it doesn't trigger multiple camera reloads.
-        addWrappedBinding(camera, "hostIP", ipTextField, "text");
-
-        //ComponentDecorators.decorateWithAutoSelect(fpsTextField);
-        //ComponentDecorators.decorateWithAutoSelect(ipTextField);
     }
 
     @Override
@@ -229,18 +195,11 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
         }
     }
 
-    private JLabel lblIP;
-    private JTextField ipTextField;
-    private JLabel lbluseFor_ip;
     private JPanel panelImage;
     private JLabel lblImageWidth;
     private JLabel lblImageHeight;
     private JTextField imageWidthTextField;
     private JTextField imageHeightTextField;
-    private JLabel lblCameraPort;
-    private JTextField cameraPortTextField;
-    private JLabel lblCameraID;
-    private JTextField cameraIDTextField;
     private JLabel lblShiftX;
     private JLabel lblShiftY;
     private JTextField shiftXTextField;

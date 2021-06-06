@@ -174,7 +174,7 @@ public class Panel extends AbstractModelObject implements Identifiable {
                 } 
                 else {
                 	// Only update
-                    BoardLocation panelBoardLocation = job.getBoardLocations().get(j*getRows()+i);
+                    BoardLocation panelBoardLocation = job.getBoardLocations().get(j*getColumns()+i);
                 	
                     // Offset PCB
                 	panelBoardLocation.setLocation(

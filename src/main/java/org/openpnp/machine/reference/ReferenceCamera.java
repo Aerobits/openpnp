@@ -80,10 +80,10 @@ public abstract class ReferenceCamera extends AbstractBroadcastingCamera impleme
     }
 
     @Attribute(required = false)
-    private int captureTryCount = 4;
+    private int captureTryCount = 2;
 
     @Attribute(required = false)
-    private int captureTryTimeoutMs = 2000;
+    private int captureTryTimeoutMs = 3000;
 
     @Element(required = false)
     private Location headOffsets = new Location(LengthUnit.Millimeters);
