@@ -56,31 +56,34 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
 
     @Override
     public void feed(Nozzle nozzle) throws Exception {
-    	Neoden4Camera camera = null;
-		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
-			if (c instanceof Neoden4Camera) {
-				camera = (Neoden4Camera) c;
-				break;
-			}
-		}
-		if (camera == null) {
-			throw new Exception("Can't find Neoden4Camera!");
-		} 
+//    	Neoden4Camera neodenCamera = null;
+//		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
+//			if (c instanceof Neoden4Camera) {
+//				neodenCamera = (Neoden4Camera) c;
+//				break;
+//			}
+//		}
+//		if (neodenCamera == null) {
+//			throw new Exception("Can't find Neoden4Camera!");
+//		} 
         
         
-        // Only for neoden4 camera hack that change image size
-		int oldCamWidth = camera.getWidth();
-		int oldCamHeight = camera.getHeight();
-		int oldCamShiftX = camera.getShiftX();
-		int oldCamShiftY = camera.getShiftY();
-
-		camera.setWidth(1024);
-		camera.setHeight(1024);
-		camera.setShiftX(0);
-		camera.setShiftY(0);   
+//        // Only for neoden4 camera hack that change image size
+//		int oldCamWidth = neodenCamera.getWidth();
+//		int oldCamHeight = neodenCamera.getHeight();
+//		int oldCamShiftX = neodenCamera.getShiftX();
+//		int oldCamShiftY = neodenCamera.getShiftY();
+//
+//		neodenCamera.setWidth(1024);
+//		neodenCamera.setHeight(1024);
+//		neodenCamera.setShiftX(0);
+//		neodenCamera.setShiftY(0);   
         
         // Move to the feeder pick location
+        Camera camera = nozzle.getHead().getDefaultCamera();
         MovableUtils.moveToLocationAtSafeZ(camera, location);
+        
+        
         try (CvPipeline pipeline = getPipeline()) {
             for (int i = 0; i < 3; i++) {
                 pickLocation = getPickLocation(pipeline, camera, nozzle);
@@ -92,10 +95,10 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
                      .showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()),
                              1000);
 		} finally {
-			((Neoden4Camera) camera).setWidth(oldCamWidth);
-			((Neoden4Camera) camera).setHeight(oldCamHeight);
-			((Neoden4Camera) camera).setShiftX(oldCamShiftX);
-			((Neoden4Camera) camera).setShiftY(oldCamShiftY);
+//			neodenCamera.setWidth(oldCamWidth);
+//			neodenCamera.setHeight(oldCamHeight);
+//			neodenCamera.setShiftX(oldCamShiftX);
+//			neodenCamera.setShiftY(oldCamShiftY);
 		}
     }
 

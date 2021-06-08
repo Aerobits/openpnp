@@ -129,6 +129,7 @@ public class Neoden4Camera extends ReferenceCamera {
         Logger.trace(String.format("Resetting camera [cameraId:%d]", cameraId));
 		try {
 			Thread.sleep(100);
+			cameraReset();
 			setCameraExposure(lastExposure);
 			setCameraGain(lastGain);
 			setCameraLt();
@@ -169,7 +170,7 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
     }
 
-	public synchronized void setCameraExposure(int exposure) {
+    private synchronized void setCameraExposure(int exposure) {
 		if (exposure != lastExposure) {
 			Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
 			try {
@@ -182,7 +183,7 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 	}
 
-	public synchronized void setCameraGain(int gain) {
+	private synchronized void setCameraGain(int gain) {
 		if (gain != lastGain) {
 			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
 			try {
@@ -194,7 +195,24 @@ public class Neoden4Camera extends ReferenceCamera {
 			}
 		}
 	}
-    
+
+	public synchronized void setCameraExposureAndGain(int exposure, int gain) {
+		boolean reset = false;
+		if (gain != lastGain) {
+			lastGain = gain;
+			reset = true;
+		}
+
+		if (exposure != lastExposure) {
+			lastExposure = exposure;
+			reset = true;
+		}
+
+		if (reset) {
+			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
+			resetCamera();
+		}
+	}
 
 	@Override
 	public synchronized void open() throws Exception {
@@ -208,9 +226,11 @@ public class Neoden4Camera extends ReferenceCamera {
         return cameraId;
     }
 
-    public void setCameraId(int cameraId) {
-        this.cameraId = cameraId;
-    }
+	public synchronized void setCameraId(int cameraId) {
+		synchronized (Neoden4Camera.class) {
+			this.cameraId = cameraId;
+		}
+	}
 
     public int getWidth() {
         return this.width;

@@ -51,10 +51,10 @@ public class Neoden4SwitcherCamera extends ReferenceCamera {
 			if (neodenCam == null) {
 				Logger.error("Can't find Neoden4Camera!");
 				return null;
-			} else {
+			} 
+			else {
 				neodenCam.setCameraId(switcher);
-				neodenCam.setCameraGain(gain);
-				neodenCam.setCameraExposure(exposure);
+				neodenCam.setCameraExposureAndGain(exposure, gain); 
 			}
 		}
         // Note, the target camera is actually a capture device with multiple analog cameras connected via multiplexer. 
