@@ -50,9 +50,9 @@ public class Neoden4Feeder extends ReferenceFeeder {
 
     @Override
     public Location getPickLocation() throws Exception {
-        if (pickLocation == null) {
+//        if (pickLocation == null) {
             pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
-        }
+//        }
 
         if (vision.isEnabled() && visionOffset != null) {
 			return pickLocation.subtract(visionOffset);
