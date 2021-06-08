@@ -31,6 +31,7 @@ import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.Neoden4Camera;
 import org.openpnp.machine.reference.ReferenceFeeder;
 import org.openpnp.machine.reference.feeder.wizards.ReferenceLoosePartFeederConfigurationWizard;
+import org.openpnp.model.Configuration;
 import org.openpnp.model.Location;
 import org.openpnp.spi.Camera;
 import org.openpnp.spi.Nozzle;
@@ -39,6 +40,7 @@ import org.openpnp.util.MovableUtils;
 import org.openpnp.util.OpenCvUtils;
 import org.openpnp.util.VisionUtils;
 import org.openpnp.vision.pipeline.CvPipeline;
+import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Element;
 
 public class ReferenceLoosePartFeeder extends ReferenceFeeder {
@@ -54,20 +56,28 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
 
     @Override
     public void feed(Nozzle nozzle) throws Exception {
-        Camera camera = nozzle.getHead()
-                              .getDefaultCamera();
+    	Neoden4Camera camera = null;
+		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
+			if (c instanceof Neoden4Camera) {
+				camera = (Neoden4Camera) c;
+				break;
+			}
+		}
+		if (camera == null) {
+			throw new Exception("Can't find Neoden4Camera!");
+		} 
         
         
         // Only for neoden4 camera hack that change image size
 		int oldCamWidth = camera.getWidth();
 		int oldCamHeight = camera.getHeight();
-		int oldCamShiftX = ((Neoden4Camera) camera).getShiftX();
-		int oldCamShiftY = ((Neoden4Camera) camera).getShiftY();
+		int oldCamShiftX = camera.getShiftX();
+		int oldCamShiftY = camera.getShiftY();
 
-		((Neoden4Camera) camera).setWidth(1024);
-		((Neoden4Camera) camera).setHeight(1024);
-		((Neoden4Camera) camera).setShiftX(0);
-		((Neoden4Camera) camera).setShiftY(0);   
+		camera.setWidth(1024);
+		camera.setHeight(1024);
+		camera.setShiftX(0);
+		camera.setShiftY(0);   
         
         // Move to the feeder pick location
         MovableUtils.moveToLocationAtSafeZ(camera, location);
