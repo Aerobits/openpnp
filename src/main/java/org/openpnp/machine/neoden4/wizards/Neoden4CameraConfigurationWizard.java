@@ -150,22 +150,6 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
         
         lblYPixels = new JLabel("(pixels)");
         panelImage.add(lblYPixels, "12, 4");
-        
-        lblExposure = new JLabel("Exposure");
-        lblExposure.setHorizontalAlignment(SwingConstants.TRAILING);
-        panelImage.add(lblExposure, "2, 8, right, default");
-        
-        cameraExposureTextField = new JTextField();
-        cameraExposureTextField.setColumns(16);
-        panelImage.add(cameraExposureTextField, "4, 8, fill, default");
-        
-        lblGain = new JLabel("Gain");
-        lblGain.setHorizontalAlignment(SwingConstants.TRAILING);
-        panelImage.add(lblGain, "2, 10, right, default");
-        
-        cameraGainTextField = new JTextField();
-        cameraGainTextField.setColumns(16);
-        panelImage.add(cameraGainTextField, "4, 10, fill, default");
     }
     
     @Override
@@ -174,8 +158,6 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
         addWrappedBinding(camera, "width", imageWidthTextField, "text", intConverter);
         addWrappedBinding(camera, "height", imageHeightTextField, "text", intConverter);
         addWrappedBinding(camera, "timeout", timeoutMillisTextField, "text", intConverter);
-        addWrappedBinding(camera, "exposure", cameraExposureTextField, "text", intConverter);
-        addWrappedBinding(camera, "gain", cameraGainTextField, "text", intConverter);
         addWrappedBinding(camera, "shiftX", shiftXTextField, "text", intConverter);
         addWrappedBinding(camera, "shiftY", shiftYTextField, "text", intConverter);
     }
@@ -209,8 +191,4 @@ public class Neoden4CameraConfigurationWizard extends AbstractConfigurationWizar
     private JLabel lblTimeout;
     private JTextField timeoutMillisTextField;
     private JLabel lbluseForTimeout;
-    private JLabel lblExposure;
-    private JLabel lblGain;
-    private JTextField cameraExposureTextField;
-    private JTextField cameraGainTextField;
 }

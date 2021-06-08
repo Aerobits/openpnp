@@ -46,15 +46,13 @@ public class Neoden4Camera extends ReferenceCamera {
     private int timeout = 1000;
 
     @Attribute(required = false)
-    private int exposure = 25;
-    @Attribute(required = false)
-    private int gain = 8;
-    @Attribute(required = false)
     private int shiftX = 0;
     @Attribute(required = false)
     private int shiftY = 0;
 
     private boolean dirty = false;
+    private int lastExposure = 0;
+    private int lastGain = 0;
     
     public Neoden4Camera() { }
     
@@ -131,9 +129,9 @@ public class Neoden4Camera extends ReferenceCamera {
         Logger.trace(String.format("Resetting camera [cameraId:%d]", cameraId));
 		try {
 			Thread.sleep(100);
-			setCameraExposure();
+			setCameraExposure(lastExposure);
 			Thread.sleep(10);
-			setCameraGain();
+			setCameraGain(lastGain);
 			Thread.sleep(10);
 			setCameraLt();
 			Thread.sleep(10);
@@ -144,19 +142,14 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 	}
 
-    private void setCameraWidthHeight() {
+    private synchronized void cameraReset() {
+        Logger.trace(String.format("imgReset() [cameraId:%d]", cameraId));
+        Neoden4CameraHandler.getInstance().img_reset(cameraId);
+    }
+    
+    private synchronized void setCameraWidthHeight() {
         Logger.trace(String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
         Neoden4CameraHandler.getInstance().img_set_wh(cameraId, (short) width, (short) height);
-    }
-
-    private synchronized void setCameraExposure() {
-        Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
-        Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
-    }
-
-    private synchronized void setCameraGain() {
-        Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
-        Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
     }
 
     private synchronized void setCameraLt() {
@@ -164,10 +157,21 @@ public class Neoden4Camera extends ReferenceCamera {
         Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
     }
 
-    private synchronized void cameraReset() {
-        Logger.trace(String.format("imgReset() [cameraId:%d]", cameraId));
-        Neoden4CameraHandler.getInstance().img_reset(cameraId);
-    }
+	public synchronized void setCameraExposure(int exposure) {
+		if (exposure != lastExposure) {
+			Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
+			Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
+			lastExposure = exposure;
+		}
+	}
+
+	public synchronized void setCameraGain(int gain) {
+		if (gain != lastGain) {
+			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
+			Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
+			lastGain = gain;
+		}
+	}
     
 
 	@Override
@@ -208,22 +212,6 @@ public class Neoden4Camera extends ReferenceCamera {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
-    }
-
-    public int getExposure() {
-        return this.exposure;
-    }
-
-    public void setExposure(int exposure) {
-        this.exposure = exposure;
-    }
-
-    public int getGain() {
-        return this.gain;
-    }
-
-    public void setGain(int gain) {
-        this.gain = gain;
     }
 
     public int getShiftX() {

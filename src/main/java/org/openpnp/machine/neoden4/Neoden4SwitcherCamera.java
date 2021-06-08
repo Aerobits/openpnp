@@ -19,6 +19,11 @@ public class Neoden4SwitcherCamera extends ReferenceCamera {
     
     @Attribute(required=false)
     private String cameraId;
+
+    @Attribute(required = false)
+    private int exposure = 25;
+    @Attribute(required = false)
+    private int gain = 8;
     
     private static Map<Integer, Camera> switchers = new HashMap<>();
     
@@ -48,6 +53,8 @@ public class Neoden4SwitcherCamera extends ReferenceCamera {
 				return null;
 			} else {
 				neodenCam.setCameraId(switcher);
+				neodenCam.setCameraGain(gain);
+				neodenCam.setCameraExposure(exposure);
 			}
 		}
         // Note, the target camera is actually a capture device with multiple analog cameras connected via multiplexer. 
@@ -124,5 +131,21 @@ public class Neoden4SwitcherCamera extends ReferenceCamera {
             setCameraId(camera.getId());
         }
         firePropertyChange("camera", null, camera);
+    }
+
+    public int getExposure() {
+        return this.exposure;
+    }
+
+    public void setExposure(int exposure) {
+        this.exposure = exposure;
+    }
+
+    public int getGain() {
+        return this.gain;
+    }
+
+    public void setGain(int gain) {
+        this.gain = gain;
     }
 }
