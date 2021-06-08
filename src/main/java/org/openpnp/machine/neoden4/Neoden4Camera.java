@@ -130,11 +130,8 @@ public class Neoden4Camera extends ReferenceCamera {
 		try {
 			Thread.sleep(100);
 			setCameraExposure(lastExposure);
-			Thread.sleep(10);
 			setCameraGain(lastGain);
-			Thread.sleep(10);
 			setCameraLt();
-			Thread.sleep(10);
 			setCameraWidthHeight();
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -144,32 +141,57 @@ public class Neoden4Camera extends ReferenceCamera {
 
     private synchronized void cameraReset() {
         Logger.trace(String.format("imgReset() [cameraId:%d]", cameraId));
-        Neoden4CameraHandler.getInstance().img_reset(cameraId);
+		try {
+			Thread.sleep(10);
+	        Neoden4CameraHandler.getInstance().img_reset(cameraId);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
     
     private synchronized void setCameraWidthHeight() {
         Logger.trace(String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
-        Neoden4CameraHandler.getInstance().img_set_wh(cameraId, (short) width, (short) height);
+        try {
+			Thread.sleep(10);
+			Neoden4CameraHandler.getInstance().img_set_wh(cameraId, (short) width, (short) height);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
 
     private synchronized void setCameraLt() {
         Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", cameraId, shiftX, shiftY));
-        Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
+		try {
+			Thread.sleep(10);
+	        Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
 
 	public synchronized void setCameraExposure(int exposure) {
 		if (exposure != lastExposure) {
 			Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
-			Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
-			lastExposure = exposure;
+			try {
+				Thread.sleep(10);
+				Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
+				lastExposure = exposure;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
 	public synchronized void setCameraGain(int gain) {
 		if (gain != lastGain) {
 			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
-			Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
-			lastGain = gain;
+			try {
+				Thread.sleep(10);
+				Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
+				lastGain = gain;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
     
