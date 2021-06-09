@@ -23,6 +23,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -50,7 +51,7 @@ public class PartsComboBoxModel extends DefaultComboBoxModel implements Property
         Configuration.get().addPropertyChangeListener("parts", this);
     }
 
-    private void addAllElements() {
+    public void addAllElements() {
         ArrayList<Part> parts = new ArrayList<>(Configuration.get().getParts());
         Collections.sort(parts, comparator);
         for (Part part : parts) {
@@ -58,7 +59,8 @@ public class PartsComboBoxModel extends DefaultComboBoxModel implements Property
         }
     }
     
-	private void addJobElements() {
+    public void filterJobElements() {
+    	// Get all placements' parts
 		List<BoardLocation> jobBoardLocations = MainFrame.get().getJobTab().getJob().getBoardLocations();
 		if (jobBoardLocations.size() == 0)
 			return;
@@ -67,52 +69,91 @@ public class PartsComboBoxModel extends DefaultComboBoxModel implements Property
 		if (jobPlacements.size() == 0)
 			return;
 
-		ArrayList<Part> parts = new ArrayList<>();
+		HashSet<Part> placementsParts = new HashSet<>();
 		for (Placement p : jobPlacements) {
-			Part part = p.getPart();
-			if (part != null) {
-				parts.add(part);
+			placementsParts.add(p.getPart());
+		}
+		
+		// Filter current elements
+		ArrayList<Part> newElements = new ArrayList<>();
+		for (int i = 0; i < getSize(); i++) {
+			Part p = (Part)getElementAt(i);
+			if (placementsParts.contains(p) == true) {
+				newElements.add(p);
 			}
 		}
 
-		Collections.sort(parts, comparator);
-		for (Part part : parts) {
-			addElement(part);
-		}
+		// Add new sorted elements
+		removeAllElements();
+        Collections.sort(newElements, comparator);
+        for (Part p : newElements) {
+        	addElement(p);
+        }
 	}
 
-	private void addUnusedElements() {
-		ArrayList<Part> parts = new ArrayList<>(Configuration.get().getParts());
+	public void filterUnusedElements() {
+    	// Get all feeders' parts
+		HashSet<Part> feedersParts = new HashSet<>();
 		List<Feeder> feeders = Configuration.get().getMachine().getFeeders();
-
 		for (Feeder f : feeders) {
-			parts.remove(f.getPart());
+			feedersParts.add(f.getPart());
+		}
+		
+		// Filter current elements
+		ArrayList<Part> newElements = new ArrayList<>();
+		for (int i = 0; i < getSize(); i++) {
+			Part p = (Part)getElementAt(i);
+			if (feedersParts.contains(p) == false) {
+				newElements.add(p);
+			}
 		}
 
-		Collections.sort(parts, comparator);
-		for (Part part : parts) {
-			addElement(part);
-		}
+		// Add new sorted elements
+		removeAllElements();
+        Collections.sort(newElements, comparator);
+        for (Part p : newElements) {
+        	addElement(p);
+        }
 	}
 
-	public void filterElements(FILTER_TYPE type) {
-    	removeAllElements();
-    	
-		switch (type) {
-			case FILTER_NONE: {
-	    		addAllElements();
-				break;
-			}
-			case FILTER_JOB: {
-	    		addJobElements();
-				break;
-			}
-			case FILTER_UNUSED: {
-				addUnusedElements();
-				break;
-			}
-		}
-	}
+//	public void filterElements(FILTER_TYPE type) {
+//    	removeAllElements();
+//    	
+//		switch (type) {
+//			case FILTER_NONE: {
+//	    		addAllElements();
+//				break;
+//			}
+//			case FILTER_JOB: {
+//	    		addJobElements();
+//				break;
+//			}
+//			case FILTER_UNUSED: {
+//				addUnusedElements();
+//				break;
+//			}
+//		}
+//	}
+//	
+//
+//	public void filterElements(FILTER_TYPE flags[]) {
+//    	removeAllElements();
+//    	
+//		switch (type) {
+//			case FILTER_NONE: {
+//	    		addAllElements();
+//				break;
+//			}
+//			case FILTER_JOB: {
+//	    		addJobElements();
+//				break;
+//			}
+//			case FILTER_UNUSED: {
+//				addUnusedElements();
+//				break;
+//			}
+//		}
+//	}
 	
 	public void addPart(Part part) {
 		if (getIndexOf(part) == -1) {

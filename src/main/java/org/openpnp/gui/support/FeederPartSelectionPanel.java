@@ -41,7 +41,8 @@ public class FeederPartSelectionPanel extends JPanel{
 	private PartsComboBoxModel partsComboBoxModel;
 	private JLabel lblPartInfo;
 	private Feeder feeder;
-
+	JCheckBox cbShowJob;
+	JCheckBox cbShowUnused;
 	public FeederPartSelectionPanel(Feeder feeder) {
 		this.feeder = feeder;
 		
@@ -84,15 +85,13 @@ public class FeederPartSelectionPanel extends JPanel{
 		JLabel lblShowFilter = new JLabel("Show filter: ");
 		add(lblShowFilter, "6, 2, right, default");
 
-		JCheckBox cbShowJob = new JCheckBox("job's");
+		cbShowJob = new JCheckBox("job's");
 		cbShowJob.addActionListener(checkBoxesAction);
-		
-		JCheckBox cbShowUnused = new JCheckBox("unused");
-		cbShowUnused.addActionListener(checkBoxesAction);
-
-
 		add(cbShowJob, "8, 2, center, default");
-		add(cbShowJob, "10, 2, center, default");
+		
+		cbShowUnused = new JCheckBox("unused");
+		cbShowUnused.addActionListener(checkBoxesAction);
+		add(cbShowUnused, "10, 2, center, default");
 
 		JButton btnShowPart = new JButton(showPartAction);
 		add(btnShowPart, "12, 2, left, default");
@@ -100,10 +99,9 @@ public class FeederPartSelectionPanel extends JPanel{
 		lblPartInfo = new JLabel("");
 		add(lblPartInfo, "4, 4, left, default");
 		
-		// Set showing unused parts as default
+		// Set showing all parts as default
 		cbShowJob.setSelected(false);
-		cbShowUnused.setSelected(true);
-		partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_UNUSED);
+		cbShowUnused.setSelected(false);
 		partsComboBoxModel.addPart(feeder.getPart());
 		comboBoxPart.setSelectedItem(feeder.getPart());
 	}
@@ -111,21 +109,17 @@ public class FeederPartSelectionPanel extends JPanel{
 	private ActionListener checkBoxesAction = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent event) {
-			switch (event.getActionCommand()) {
-				case "all": {
-					partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_NONE);
-					break;
-				}
-				case "job's": {
-					partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_JOB);
-					break;
-				}
-				case "unused": {
-					partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_UNUSED);
-					break;
-				}
+
+			partsComboBoxModel.removeAllElements();
+			partsComboBoxModel.addAllElements();
+
+			if (cbShowJob.isSelected()) {
+				partsComboBoxModel.filterJobElements();
 			}
-			
+			if (cbShowUnused.isSelected()) {
+				partsComboBoxModel.filterUnusedElements();
+			}
+
 			partsComboBoxModel.setSelectedItem(feeder.getPart());
 		}
 	};
