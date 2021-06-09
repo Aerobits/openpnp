@@ -30,37 +30,36 @@ import org.openpnp.util.OpenCvUtils;
 import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 
-
 /**
  * A Camera implementation for ONVIF compatible IP cameras.
  */
 public class Neoden4Camera extends ReferenceCamera {
-    @Attribute(required = true)
-    private int cameraId = 1;
+	@Attribute(required = true)
+	private int cameraId = 1;
 
-    @Attribute(required = false)
-    private int width = 1024;
-    @Attribute(required = false)
-    private int height = 1024;
-    @Attribute(required = false)
-    private int timeout = 1000;
+	@Attribute(required = false)
+	private int width = 1024;
+	@Attribute(required = false)
+	private int height = 1024;
+	@Attribute(required = false)
+	private int timeout = 1000;
 
-    @Attribute(required = false)
-    private int shiftX = 0;
-    @Attribute(required = false)
-    private int shiftY = 0;
+	@Attribute(required = false)
+	private int shiftX = 0;
+	@Attribute(required = false)
+	private int shiftY = 0;
 
-    private boolean dirty = false;
-    private int lastExposure = 0;
-    private int lastGain = 0;
-    
-    public Neoden4Camera() { }
-    
-    
-    private BufferedImage convertToRgb(BufferedImage image) {
-    	Mat mat = OpenCvUtils.toMat(image);
-	    return OpenCvUtils.toBufferedImage(OpenCvUtils.toRGB(mat));
-	    
+	private boolean dirty = false;
+	private int lastExposure = 0;
+	private int lastGain = 0;
+
+	public Neoden4Camera() {
+	}
+
+	private BufferedImage convertToRgb(BufferedImage image) {
+		Mat mat = OpenCvUtils.toMat(image);
+		return OpenCvUtils.toBufferedImage(OpenCvUtils.toRGB(mat));
+
 //	    int iw = image.getWidth();
 //	    int ih = image.getHeight();
 //	
@@ -81,21 +80,21 @@ public class Neoden4Camera extends ReferenceCamera {
 //	    }
 //	    
 //	    return imageOut;  
-    }
-    
-    private int lastWidth = 0;
-    
+	}
+
+	private int lastWidth = 0;
+
 	@Override
 	public synchronized BufferedImage internalCapture() {
 		Logger.debug(String.format("internalCapture() [cameraId:%d]", cameraId));
-		
+
 		long tStart = System.currentTimeMillis();
-		
+
 		if (!ensureOpen()) {
 			Logger.trace(String.format("ensureOpen [cameraId:%d] failed", cameraId));
 			return null;
 		}
-		
+
 		try {
 			if (lastWidth != width) {
 				Logger.debug(String.format("REFRESH [cameraId:%d]", cameraId));
@@ -104,7 +103,7 @@ public class Neoden4Camera extends ReferenceCamera {
 			}
 
 			byte[] data = new byte[width * height];
-			
+
 			Thread.sleep(10);
 			int ret = Neoden4CameraHandler.getInstance().img_readAsy(cameraId, data, data.length, timeout);
 			if (ret != 1) {
@@ -115,18 +114,17 @@ public class Neoden4Camera extends ReferenceCamera {
 			BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
 			img.getRaster().setDataElements(0, 0, width, height, data);
 			BufferedImage imgRGB = convertToRgb(img);
-		
+
 			Logger.debug(String.format("internalCapture() done in: %d", System.currentTimeMillis() - tStart));
 			return imgRGB;
-		} 
-		catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
+
 	private void resetCamera() {
-        Logger.trace(String.format("Resetting camera [cameraId:%d]", cameraId));
+		Logger.trace(String.format("Resetting camera [cameraId:%d]", cameraId));
 		try {
 			Thread.sleep(100);
 			cameraReset();
@@ -140,59 +138,56 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 	}
 
-    private synchronized void cameraReset() {
-        Logger.trace(String.format("imgReset() [cameraId:%d]", cameraId));
+	private synchronized void cameraReset() {
+		Logger.trace(String.format("imgReset() [cameraId:%d]", cameraId));
 		try {
 			Thread.sleep(10);
-	        Neoden4CameraHandler.getInstance().img_reset(cameraId);
+			Neoden4CameraHandler.getInstance().img_reset(cameraId);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-    }
-    
-    private synchronized void setCameraWidthHeight() {
-        Logger.trace(String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
-        try {
+	}
+
+	private synchronized void setCameraWidthHeight() {
+		Logger.trace(
+				String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
+		try {
 			Thread.sleep(10);
 			Neoden4CameraHandler.getInstance().img_set_wh(cameraId, (short) width, (short) height);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
-    private synchronized void setCameraLt() {
-        Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", cameraId, shiftX, shiftY));
+	private synchronized void setCameraLt() {
+		Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", cameraId, shiftX, shiftY));
 		try {
 			Thread.sleep(10);
-	        Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
+			Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-    }
+	}
 
-    private synchronized void setCameraExposure(int exposure) {
-		if (exposure != lastExposure) {
-			Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
-			try {
-				Thread.sleep(10);
-				Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
-				lastExposure = exposure;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+	private synchronized void setCameraExposure(int exposure) {
+		Logger.trace(String.format("imgSetExposure() [cameraId:%d]", cameraId, exposure));
+		try {
+			Thread.sleep(10);
+			Neoden4CameraHandler.getInstance().img_set_exp(cameraId, (short) exposure);
+			lastExposure = exposure;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
 	private synchronized void setCameraGain(int gain) {
-		if (gain != lastGain) {
-			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
-			try {
-				Thread.sleep(10);
-				Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
-				lastGain = gain;
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
+		try {
+			Thread.sleep(10);
+			Neoden4CameraHandler.getInstance().img_set_gain(cameraId, (short) gain);
+			lastGain = gain;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -209,7 +204,6 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 
 		if (reset) {
-			Logger.trace(String.format("imgSetGain() [cameraId:%d, gain:%d]", cameraId, gain));
 			resetCamera();
 		}
 	}
@@ -222,9 +216,9 @@ public class Neoden4Camera extends ReferenceCamera {
 		super.open();
 	}
 
-    public int getCameraId() {
-        return cameraId;
-    }
+	public int getCameraId() {
+		return cameraId;
+	}
 
 	public synchronized void setCameraId(int cameraId) {
 		synchronized (Neoden4Camera.class) {
@@ -232,66 +226,66 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 	}
 
-    public int getWidth() {
-        return this.width;
-    }
+	public int getWidth() {
+		return this.width;
+	}
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
+	public void setWidth(int width) {
+		this.width = width;
+	}
 
-    public int getHeight() {
-        return this.height;
-    }
+	public int getHeight() {
+		return this.height;
+	}
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
+	public void setHeight(int height) {
+		this.height = height;
+	}
 
-    public int getTimeout() {
-        return this.timeout;
-    }
+	public int getTimeout() {
+		return this.timeout;
+	}
 
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
-    }
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
 
-    public int getShiftX() {
-        return this.shiftX;
-    }
+	public int getShiftX() {
+		return this.shiftX;
+	}
 
-    public void setShiftX(int shiftX) {
-        this.shiftX = shiftX;
-    }
+	public void setShiftX(int shiftX) {
+		this.shiftX = shiftX;
+	}
 
-    public int getShiftY() {
-        return this.shiftY;
-    }
+	public int getShiftY() {
+		return this.shiftY;
+	}
 
-    public void setShiftY(int shiftY) {
-        this.shiftY = shiftY;
-    }
+	public void setShiftY(int shiftY) {
+		this.shiftY = shiftY;
+	}
 
-    public boolean isDirty() {
-        return dirty;
-    }
+	public boolean isDirty() {
+		return dirty;
+	}
 
-    public void setDirty(boolean dirty) {
-        this.dirty = dirty;
-    }
+	public void setDirty(boolean dirty) {
+		this.dirty = dirty;
+	}
 
-    @Override
-    public Wizard getConfigurationWizard() {
-        return new Neoden4CameraConfigurationWizard(this);
-    }
+	@Override
+	public Wizard getConfigurationWizard() {
+		return new Neoden4CameraConfigurationWizard(this);
+	}
 
-    @Override
-    public String getPropertySheetHolderTitle() {
-        return getClass().getSimpleName() + " " + getName();
-    }
+	@Override
+	public String getPropertySheetHolderTitle() {
+		return getClass().getSimpleName() + " " + getName();
+	}
 
-    @Override
-    public PropertySheetHolder[] getChildPropertySheetHolders() {
-        return null;
-    }
+	@Override
+	public PropertySheetHolder[] getChildPropertySheetHolders() {
+		return null;
+	}
 }
