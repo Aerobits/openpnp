@@ -87,6 +87,21 @@ public class MessageBoxes {
         JOptionPane.showMessageDialog(MainFrame.get(), message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
+    public static boolean confirmBox(String title, String message) {
+        if (message == null) {
+            message = "";
+        }
+        message = message.replaceAll("\n", "<br/>");
+        message = message.replaceAll("\r", "");
+        message = "<html><body width=\"400\">" + message + "</body></html>";
+        int ret = JOptionPane.showConfirmDialog(MainFrame.get(), message, title, JOptionPane.WARNING_MESSAGE);
+        if (ret == JOptionPane.OK_OPTION) {
+        	return true;
+        } else {
+        	return false;
+        }
+    }
+
     public static void notYetImplemented(Component parent) {
         errorBox(parent, "Not Yet Implemented", "This function is not yet implemented.");
     }

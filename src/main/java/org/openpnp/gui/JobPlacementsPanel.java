@@ -472,22 +472,26 @@ public class JobPlacementsPanel extends JPanel {
         }
     };
 
-    public final Action removeAction = new AbstractAction() {
-        {
-            putValue(SMALL_ICON, Icons.delete);
-            putValue(NAME, "Remove Placement(s)");
-            putValue(SHORT_DESCRIPTION, "Remove the currently selected placement(s).");
-        }
+	public final Action removeAction = new AbstractAction() {
+		{
+			putValue(SMALL_ICON, Icons.delete);
+			putValue(NAME, "Remove Placement(s)");
+			putValue(SHORT_DESCRIPTION, "Remove the currently selected placement(s).");
+		}
 
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-            for (Placement placement : getSelections()) {
-                boardLocation.getBoard().removePlacement(placement);
-            }
-            tableModel.fireTableDataChanged();
-            updateActivePlacements();
-        }
-    };
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			for (Placement placement : getSelections()) {
+				boolean confirm = MessageBoxes.confirmBox("Caution!",
+						String.format("Do you really want to remove %s?", placement.getId()));
+				if (confirm) {
+					boardLocation.getBoard().removePlacement(placement);
+				}
+			}
+			tableModel.fireTableDataChanged();
+			updateActivePlacements();
+		}
+	};
 
     public final Action moveCameraToPlacementLocation = new AbstractAction() {
         {
