@@ -34,11 +34,11 @@ public final class Neoden4CameraHandler implements Neoden4CamDll {
 			Thread.sleep(10);
 			instance.img_set_lt(1, (short) 0, (short) 0);
 			Thread.sleep(10);
-			instance.img_reset(2);
+			instance.img_reset(5);
 			Thread.sleep(10);
-			instance.img_set_wh(2, (short) 1024, (short) 1024);
+			instance.img_set_wh(5, (short) 1024, (short) 1024);
 			Thread.sleep(10);
-			instance.img_set_lt(2, (short) 0, (short) 0);
+			instance.img_set_lt(5, (short) 0, (short) 0);
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
