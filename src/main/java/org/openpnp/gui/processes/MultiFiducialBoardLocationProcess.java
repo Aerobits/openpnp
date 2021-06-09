@@ -113,6 +113,7 @@ public class MultiFiducialBoardLocationProcess {
     	
     	if(isCancelled == true) {
     		finish();
+    		return;
     	}
     	
         boolean stepResult = true;
@@ -409,8 +410,6 @@ public class MultiFiducialBoardLocationProcess {
         boardLocation.setLocation(savedBoardLocation);
         boardLocation.setPlacementTransform(savedPlacementTransform);
         jobPanel.refresh();
-        
-        mainFrame.hideInstructions();
         
         isCancelled = true;
     }
