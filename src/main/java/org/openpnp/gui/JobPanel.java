@@ -208,11 +208,19 @@ public class JobPanel extends JPanel {
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 					boolean hasFocus, int row, int col) {
 
-				boolean isPlacementsTransformed = tableModel.getBoardLocation(row).getPlacementTransform() == null;
+				// Highlight x,y,z,rotation depending on applied transform:
+				// - if board has active transform: green
+				// - if board has not active transform: red
+				boolean isPlacementsTransformed = tableModel.getBoardLocation(row).getPlacementTransform() != null;
 				
-				if (isPlacementsTransformed && (col == 4 || col == 5 || col == 6 || col == 7)) {
-					this.setForeground(Color.black);
-					this.setBackground(new Color(255, 157, 157));
+				if ((col == 4 || col == 5 || col == 6 || col == 7)) {
+					if (isPlacementsTransformed) {
+						this.setForeground(Color.black);
+						this.setBackground(new Color(157, 255, 157));
+					} else {
+						this.setForeground(Color.black);
+						this.setBackground(new Color(255, 157, 157));
+					}
 				} else {
 					this.setBackground(table.getBackground());
 					this.setForeground(table.getForeground());
