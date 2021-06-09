@@ -25,6 +25,7 @@ import org.opencv.core.Mat;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.wizards.Neoden4CameraConfigurationWizard;
 import org.openpnp.machine.reference.ReferenceCamera;
+import org.openpnp.model.Configuration;
 import org.openpnp.spi.PropertySheetHolder;
 import org.openpnp.util.OpenCvUtils;
 import org.pmw.tinylog.Logger;
@@ -59,30 +60,7 @@ public class Neoden4Camera extends ReferenceCamera {
 	private BufferedImage convertToRgb(BufferedImage image) {
 		Mat mat = OpenCvUtils.toMat(image);
 		return OpenCvUtils.toBufferedImage(OpenCvUtils.toRGB(mat));
-
-//	    int iw = image.getWidth();
-//	    int ih = image.getHeight();
-//	
-//	    BufferedImage imageOut = 
-//	    	    new BufferedImage(iw, ih, BufferedImage.TYPE_INT_BGR);
-//	    
-//	    for (int y = 0; y < ih; y++) {
-//	      for (int x = 0; x < iw; x++) {
-//	        int pixel = image.getRGB(x, y);
-//	        int red = (pixel >> 16) & 0xFF;
-//	        int green = (pixel >> 8) & 0xFF;
-//	        int blue = pixel & 0xFF;
-//	        
-//	        int col = (red << 16) | (green << 8) | blue;
-//	        imageOut.setRGB(x, y, col);
-//	        
-//	      }
-//	    }
-//	    
-//	    return imageOut;  
 	}
-
-	private int lastWidth = 0;
 
 	@Override
 	public synchronized BufferedImage internalCapture() {
@@ -96,12 +74,6 @@ public class Neoden4Camera extends ReferenceCamera {
 		}
 
 		try {
-			if (lastWidth != width) {
-				Logger.debug(String.format("REFRESH [cameraId:%d]", cameraId));
-				resetCamera();
-				lastWidth = width;
-			}
-
 			byte[] data = new byte[width * height];
 
 			Thread.sleep(10);
@@ -130,8 +102,6 @@ public class Neoden4Camera extends ReferenceCamera {
 			cameraReset();
 			setCameraExposure(lastExposure);
 			setCameraGain(lastGain);
-			setCameraLt();
-			setCameraWidthHeight();
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -143,27 +113,6 @@ public class Neoden4Camera extends ReferenceCamera {
 		try {
 			Thread.sleep(10);
 			Neoden4CameraHandler.getInstance().img_reset(cameraId);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private synchronized void setCameraWidthHeight() {
-		Logger.trace(
-				String.format("setCameraWidthHeight() [cameraId:%d, width:%d, height:%d]", cameraId, width, height));
-		try {
-			Thread.sleep(10);
-			Neoden4CameraHandler.getInstance().img_set_wh(cameraId, (short) width, (short) height);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private synchronized void setCameraLt() {
-		Logger.trace(String.format("imgSetLt() [cameraId:%d, shiftX:%d, shiftY:%d]", cameraId, shiftX, shiftY));
-		try {
-			Thread.sleep(10);
-			Neoden4CameraHandler.getInstance().img_set_lt(cameraId, (short) shiftX, (short) shiftY);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

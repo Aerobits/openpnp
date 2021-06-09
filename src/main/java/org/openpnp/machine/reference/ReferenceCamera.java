@@ -350,7 +350,7 @@ public abstract class ReferenceCamera extends AbstractBroadcastingCamera impleme
 
     public void setCropWidth(int cropWidth) {
         this.cropWidth = cropWidth;
-        viewHasChanged();
+//        viewHasChanged();
     }
 
     public int getCropHeight() {
@@ -359,7 +359,7 @@ public abstract class ReferenceCamera extends AbstractBroadcastingCamera impleme
 
     public void setCropHeight(int cropHeight) {
         this.cropHeight = cropHeight;
-        viewHasChanged();
+//        viewHasChanged();
     }
 
     public int getScaleWidth() {

@@ -1,5 +1,7 @@
 package org.openpnp.machine.neoden4;
 
+import org.pmw.tinylog.Logger;
+
 public final class Neoden4CameraHandler implements Neoden4CamDll {
 
 	public Neoden4CameraHandler() {
@@ -10,15 +12,37 @@ public final class Neoden4CameraHandler implements Neoden4CamDll {
 	public static synchronized Neoden4CameraHandler getInstance() {
 		if (instance == null) {
 			instance = new Neoden4CameraHandler();
-
-			int cameras = Neoden4CameraHandler.getInstance().img_init();
-			if (cameras < 2) {
-				System.out.println(String.format("Bummer, detected %d cameras...", cameras));
-			} else {
-				System.out.println(String.format("Detected %d neoden cameras...", cameras));
-			}
+			instance.initializeCameras();
 		}
 		return instance;
+	}
+
+	private void initializeCameras() {
+		int cameras = Neoden4CameraHandler.getInstance().img_init();
+
+		if (cameras < 2) {
+			Logger.error(String.format("Bummer, detected %d cameras...", cameras));
+		} else {
+			Logger.info(String.format("Detected %d neoden cameras...", cameras));
+		}
+
+		try {
+			Thread.sleep(100);
+			instance.img_reset(1);
+			Thread.sleep(10);
+			instance.img_set_wh(1, (short) 1024, (short) 1024);
+			Thread.sleep(10);
+			instance.img_set_lt(1, (short) 0, (short) 0);
+			Thread.sleep(10);
+			instance.img_reset(2);
+			Thread.sleep(10);
+			instance.img_set_wh(2, (short) 1024, (short) 1024);
+			Thread.sleep(10);
+			instance.img_set_lt(2, (short) 0, (short) 0);
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
