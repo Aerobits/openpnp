@@ -106,6 +106,9 @@ public class MultiFiducialBoardLocationProcess {
         Logger.trace("Board scaling tolerance = " + props.scalingTolerance);
         Logger.trace("Board shearing tolerance = " + props.shearingTolerance);
         
+
+        Configuration.get().getScripting().on("BeforeMultiFiducialBoardLocationProcess", null);
+        
         advance();
     }
 
@@ -402,15 +405,13 @@ public class MultiFiducialBoardLocationProcess {
     
     private void finish() {
         jobPanel.refresh();
-        mainFrame.hideInstructions();
     }
 
     private void cancel() {
         //Restore the old settings
         boardLocation.setLocation(savedBoardLocation);
         boardLocation.setPlacementTransform(savedPlacementTransform);
-        jobPanel.refresh();
-        
+        mainFrame.hideInstructions();
         isCancelled = true;
     }
 
