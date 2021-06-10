@@ -10,6 +10,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -59,8 +60,6 @@ public class FeederPartSelectionPanel extends JPanel{
                 FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC,
                 FormSpecs.RELATED_GAP_COLSPEC,
-                FormSpecs.DEFAULT_COLSPEC,
-                FormSpecs.RELATED_GAP_COLSPEC,
                 FormSpecs.DEFAULT_COLSPEC},
             new RowSpec[] {
                 FormSpecs.RELATED_GAP_ROWSPEC,
@@ -85,39 +84,31 @@ public class FeederPartSelectionPanel extends JPanel{
 		JLabel lblShowFilter = new JLabel("Show filter: ");
 		add(lblShowFilter, "6, 2, right, default");
 
-		JRadioButton rbShowPartAll = new JRadioButton("all");
-		JRadioButton rbShowPartJob = new JRadioButton("job's");
-		JRadioButton rbShowPartUnused = new JRadioButton("unused");
-
-		ButtonGroup buttonGroup = new ButtonGroup();
-		buttonGroup.add(rbShowPartAll);
-		buttonGroup.add(rbShowPartJob);
-		buttonGroup.add(rbShowPartUnused);
+		JCheckBox cbShowJob = new JCheckBox("job's");
+		cbShowJob.addActionListener(checkBoxesAction);
 		
-		add(rbShowPartAll, "8, 2, center, default");
-		add(rbShowPartJob, "10, 2, center, default");
-		add(rbShowPartUnused, "12, 2, center, default");
+		JCheckBox cbShowUnused = new JCheckBox("unused");
+		cbShowUnused.addActionListener(checkBoxesAction);
+
+
+		add(cbShowJob, "8, 2, center, default");
+		add(cbShowJob, "10, 2, center, default");
 
 		JButton btnShowPart = new JButton(showPartAction);
-		add(btnShowPart, "14, 2, left, default");
+		add(btnShowPart, "12, 2, left, default");
 
-		rbShowPartAll.addActionListener(radioButtonsAction);
-		rbShowPartJob.addActionListener(radioButtonsAction);
-		rbShowPartUnused.addActionListener(radioButtonsAction);
-
-		
 		lblPartInfo = new JLabel("");
 		add(lblPartInfo, "4, 4, left, default");
 		
-		
 		// Set showing unused parts as default
-		rbShowPartUnused.setSelected(true);
+		cbShowJob.setSelected(false);
+		cbShowUnused.setSelected(true);
 		partsComboBoxModel.filterElements(FILTER_TYPE.FILTER_UNUSED);
 		partsComboBoxModel.addPart(feeder.getPart());
 		comboBoxPart.setSelectedItem(feeder.getPart());
 	}
 	
-	private ActionListener radioButtonsAction = new ActionListener() {
+	private ActionListener checkBoxesAction = new ActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent event) {
 			switch (event.getActionCommand()) {
