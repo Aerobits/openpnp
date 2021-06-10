@@ -87,15 +87,16 @@ public abstract class AbstractBroadcastingCamera extends AbstractCamera implemen
 							/*
 							 * Triggered during:
 							 * 
-							 * ------REMOVED-----> Actuator - actuate, read 
+							 * Actuator - actuate, read 
 							 * Head - home 
 							 * Nozzle - loadNozzleTip, unloadNozzleTip, pick, place 
 							 * MotionPlanner - executeMotionPlan, waitForCompletion
 							 * 
 							 */
-                        	 if (!isPreviewSuspended()) {
-                                 notifyCapture();
-                             }
+                        	 
+                        	 // if (!isPreviewSuspended()) {
+                             //     notifyCapture();
+                             // }
                         }
 
                         @Override 

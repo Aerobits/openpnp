@@ -263,7 +263,7 @@ public class ReferenceActuator extends AbstractActuator implements ReferenceHead
         if (isCoordinatedAfterActuate()) {
             coordinateWithMachine(true);
         }
-//        getMachine().fireMachineHeadActivity(head);
+        getMachine().fireMachineHeadActivity(head);
     }
 
     protected void driveActuation(boolean on) throws Exception {
@@ -281,7 +281,7 @@ public class ReferenceActuator extends AbstractActuator implements ReferenceHead
         if (isCoordinatedAfterActuate()) {
             coordinateWithMachine(true);
         }
-//        getMachine().fireMachineHeadActivity(head);
+        getMachine().fireMachineHeadActivity(head);
     }
 
     protected void driveActuation(double value) throws Exception {
@@ -299,7 +299,7 @@ public class ReferenceActuator extends AbstractActuator implements ReferenceHead
         if (isCoordinatedAfterActuate()) {
             coordinateWithMachine(true);
         }
-//        getMachine().fireMachineHeadActivity(head);
+        getMachine().fireMachineHeadActivity(head);
     }
 
     protected void driveActuation(String value) throws Exception {
@@ -330,7 +330,7 @@ public class ReferenceActuator extends AbstractActuator implements ReferenceHead
         if (isCoordinatedAfterActuate()) {
             coordinateWithMachine(true);
         }
-//        getMachine().fireMachineHeadActivity(head);
+        getMachine().fireMachineHeadActivity(head);
         return value;
     }
 
@@ -341,7 +341,7 @@ public class ReferenceActuator extends AbstractActuator implements ReferenceHead
         }
         String value = getDriver().actuatorRead(this, parameter);
         Logger.debug("{}.readWithDouble({}): {}", getName(), parameter, value);
-//        getMachine().fireMachineHeadActivity(head);
+        getMachine().fireMachineHeadActivity(head);
         return value;
     }
 
