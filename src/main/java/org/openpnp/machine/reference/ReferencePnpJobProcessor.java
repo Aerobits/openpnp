@@ -27,8 +27,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
+import org.openpnp.gui.JobPanel;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.reference.wizards.ReferencePnpJobProcessorConfigurationWizard;
 import org.openpnp.model.BoardLocation;
@@ -596,6 +598,11 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                     Configuration.get()
                                  .getScripting()
                                  .on("Job.Placement.Starting", params);
+                    
+
+                    Preferences prefs = Preferences.userNodeForPackage(JobPanel.class);
+                    prefs.putInt("LAST_ACTIVE_BOARDLOCATION", boardLocation.hashCode());
+                    
                 }
                 catch (Exception e) {
                     throw new JobProcessorException(null, e);

@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FileDialog;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -207,7 +208,17 @@ public class JobPanel extends JPanel {
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 					boolean hasFocus, int row, int col) {
-
+				
+				// Set font bold if boardLocation is last active boardLocation
+				// last active -> set during Job.Placement.Starting
+				BoardLocation boardLocation = tableModel.getBoardLocation(row);
+				int currentBoardLocationHash = prefs.getInt("LAST_ACTIVE_BOARDLOCATION", -1);
+				if (boardLocation.hashCode() == currentBoardLocationHash) {
+					this.setFont(this.getFont().deriveFont(Font.BOLD));
+				} else {
+					this.setFont(this.getFont().deriveFont(Font.PLAIN));
+				}
+				
 				// Highlight x,y,z,rotation depending on applied transform:
 				// - if board has active transform: green
 				// - if board has not active transform: red
@@ -225,7 +236,7 @@ public class JobPanel extends JPanel {
 					this.setBackground(table.getBackground());
 					this.setForeground(table.getForeground());
 				}
-
+				
 				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 
 				return this;
