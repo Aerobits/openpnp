@@ -461,7 +461,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 
 		globalOffsetX = location.getCoordinate(location.getAxis(Axis.Type.X)) - this.x + globalOffsetX;
 		globalOffsetY = location.getCoordinate(location.getAxis(Axis.Type.Y)) - this.y + globalOffsetY;
-		Logger.debug(String.format("Set global offset to %.3f,%.3f", globalOffsetX, globalOffsetY));
+		Logger.warn(String.format("Set global offset to %.3f,%.3f", globalOffsetX, globalOffsetY));
 
 		// Log global offsets to file
 		CalibrationLogger.addToLog(String.format("GLOBAL OFFSETS: X: %f, Y: %f", globalOffsetX, globalOffsetY));
@@ -542,7 +542,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         expect(0x0d);
 
         byte[] b = new byte[8];
-        Logger.debug(String.format("Neoden moveStep %d, %d", sx, sy));
+        Logger.trace(String.format("Neoden moveStep %d, %d", sx, sy));
         putInt32(sx, b, 0);
         putInt32(sy, b, 4);
         writeWithChecksum(b);
@@ -554,7 +554,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 
         this.xMs = sx;
         this.yMs = sy;
-        Logger.debug(String.format("xMs, yMs changed to %d,%d", sx, sy));
+        Logger.trace(String.format("xMs, yMs changed to %d,%d", sx, sy));
     }
 
     private Boolean isStatusReady() throws Exception {
@@ -695,7 +695,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.debug("Recovered feed");
+        		Logger.warn("Recovered feed");
         		Thread.sleep(1000);
         	}
     	}
@@ -756,7 +756,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.debug("Recovered peel");
+        		Logger.warn("Recovered peel");
         		Thread.sleep(1000);
         	}
     	}
@@ -944,7 +944,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         		Thread.sleep(1000);
         		flushInput();
         		Thread.sleep(1000);
-        		Logger.debug("Recovered moveTo");
+        		Logger.warn("Recovered moveTo");
         	}
     	}
     	
@@ -1208,7 +1208,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.debug("Recovered actuate");
+        		Logger.warn("Recovered actuate");
         		Thread.sleep(1000);
         	}
     	}
@@ -1242,7 +1242,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 			} catch (Exception e) {
 				Thread.sleep(1000);
 				flushInput();
-				Logger.debug("Recovered getNozzleAirValue");
+				Logger.warn("Recovered getNozzleAirValue");
 				Thread.sleep(1000);
 			}
 		}
