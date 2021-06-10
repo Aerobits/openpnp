@@ -1122,8 +1122,31 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         writeWithChecksum(b);
         pollFor(0x03,  0x47);
     }
+    
 
-    private void actuateInternal(ReferenceActuator actuator, double value) throws Exception {
+    public void setBuzzer(boolean state) throws Exception {
+        Logger.trace(String.format("Neoden setBuzzer %b", state));
+        write(0x47);
+        expect(0x0b);
+
+        write(0xc7);
+        expect(0x03);
+
+		byte[] b = new byte[8];  
+		b[0] = (byte) 0x00;
+		b[1] = (byte) 0x00;
+		b[2] = (byte) 0x00;
+		b[3] = (byte) 0x00;
+		b[4] = (byte) 0x00;
+		b[5] = state ? (byte) 0x01 : (byte) 0x00;
+		b[6] = (byte) 0x00;
+		b[7] = (byte) 0x00;
+
+        writeWithChecksum(b);
+        pollFor(0x07,  0x43);
+    }
+
+    private void actuateInternal(ReferenceActuator actuator, double value) throws Exception {    	
         switch (actuator.getName()) {
         case ACT_N1_BLOW:
         case ACT_N1_VACUUM: {

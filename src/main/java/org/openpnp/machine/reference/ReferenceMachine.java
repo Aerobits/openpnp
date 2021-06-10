@@ -38,6 +38,7 @@ import org.openpnp.machine.neoden4.NeoDen4Driver;
 import org.openpnp.machine.neoden4.NeoDen4FeederActuator;
 import org.openpnp.machine.neoden4.Neoden4Camera;
 import org.openpnp.machine.neoden4.Neoden4Feeder;
+import org.openpnp.machine.neoden4.Neoden4Signaler;
 import org.openpnp.machine.neoden4.Neoden4SwitcherCamera;
 import org.openpnp.machine.rapidplacer.RapidFeeder;
 import org.openpnp.machine.reference.actuator.ThermistorToLinearSensorActuator;
@@ -391,6 +392,7 @@ public class ReferenceMachine extends AbstractMachine {
         List<Class<? extends Signaler>> l = new ArrayList<>();
         l.add(SoundSignaler.class);
         l.add(ActuatorSignaler.class);
+        l.add(Neoden4Signaler.class);
         return l;
     }
 
