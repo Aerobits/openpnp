@@ -934,6 +934,7 @@ public class JobPanel extends JPanel {
      */
     public void jobStart() throws Exception {
         jobProcessor = Configuration.get().getMachine().getPnpJobProcessor();
+        
         if (isAllPlaced()) {
             int ret = JOptionPane.showConfirmDialog(getTopLevelAncestor(),
                     "All placements have been placed already. Reset all placements before starting job?", //$NON-NLS-1$
@@ -946,6 +947,19 @@ public class JobPanel extends JPanel {
                 jobPlacementsPanel.refresh();
             }
         }
+        
+        if (!isAllFiducialChecked()) {
+        	int ret = JOptionPane.showConfirmDialog(getTopLevelAncestor(),
+        			"Not all boards in current job are fiducial checked. Do you want to run job anyway?",
+                    "Start job?",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (ret != JOptionPane.YES_OPTION) {
+                setState(State.Stopped);
+            	return;
+            }
+        }
+        
         jobProcessor.initialize(job);
         jobRun();
     }
@@ -1626,6 +1640,16 @@ public class JobPanel extends JPanel {
         // Would be better to have property notifiers but this is going to have to do for now.
         repaint();
     };
+    
+
+    boolean isAllFiducialChecked() {
+    	for (BoardLocation boardLocation : job.getBoardLocations()) {
+    		if (boardLocation.getPlacementTransform() == null) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
         
     boolean isAllPlaced() {
     	for (BoardLocation boardLocation : job.getBoardLocations()) {
