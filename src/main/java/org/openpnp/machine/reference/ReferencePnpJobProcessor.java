@@ -41,6 +41,7 @@ import org.openpnp.model.Location;
 import org.openpnp.model.Panel;
 import org.openpnp.model.Part;
 import org.openpnp.model.Placement;
+import org.openpnp.model.Placement.ErrorHandling;
 import org.openpnp.spi.Feeder;
 import org.openpnp.spi.FiducialLocator;
 import org.openpnp.spi.Head;
@@ -614,7 +615,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                  * Exception so that we can continue the loop.
                  */
                 try {
-                    feed(feeder, nozzle);
+                    feed(feeder, nozzle, placement);
                 }
                 catch (JobProcessorException jpe) {
                     lastException = jpe;
@@ -652,7 +653,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
             throw lastException;
         }
         
-        private void feed(Feeder feeder, Nozzle nozzle) throws JobProcessorException {
+        private void feed(Feeder feeder, Nozzle nozzle, Placement placement) throws JobProcessorException {
             Exception lastException = null;
             for (int i = 0; i < 1 + feeder.getFeedRetryCount(); i++) {
                 try {
@@ -665,7 +666,10 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                     lastException = e;
                 }
             }
-            feeder.setEnabled(false);
+
+            if (placement.getErrorHandling() == ErrorHandling.Defer) {
+                feeder.setEnabled(false);
+            }
             throw new JobProcessorException(feeder, lastException);
         }
         
@@ -799,7 +803,9 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
 
             	part.failNumber++;
             	if(part.failNumber >= part.getPlaceRetryCount()) {
-            		findFeeder(machine, part).setEnabled(false);
+                    if (placement.getErrorHandling() == ErrorHandling.Defer) {
+                		findFeeder(machine, part).setEnabled(false);
+                    }
             		part.failNumber = 0;
             		throw e;
             	}
