@@ -199,6 +199,7 @@ public class JobPanel extends JPanel {
         };
 
         table.setAutoCreateRowSorter(true);
+        table.getRowSorter().toggleSortOrder(10);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setDefaultEditor(Side.class, new DefaultCellEditor(sidesComboBox));
         

@@ -35,11 +35,11 @@ public class BoardLocationsTableModel extends AbstractTableModel {
     private final Configuration configuration;
 
     private String[] columnNames = new String[] {"Board", "Width", "Length", "Side", "X", "Y", "Z",
-            "Rot.", "Enabled?", "Check Fids?"};
+            "Rot.", "Enabled?", "Check Fids?", "Panel pos."};
 
     private Class[] columnTypes = new Class[] {String.class, LengthCellValue.class,
             LengthCellValue.class, Side.class, LengthCellValue.class, LengthCellValue.class,
-            LengthCellValue.class, String.class, Boolean.class, Boolean.class};
+            LengthCellValue.class, String.class, Boolean.class, Boolean.class, String.class};
 
     private Job job;
 
@@ -161,6 +161,12 @@ public class BoardLocationsTableModel extends AbstractTableModel {
             else if (columnIndex == 9) {
                 boardLocation.setCheckFiducials((Boolean) aValue);
                 fireTableCellUpdated(rowIndex, columnIndex);
+            } 
+            else if (columnIndex == 10) {
+            	if (job.isUsingPanel()) {
+                    boardLocation.setPanelPos((String) aValue);
+                    fireTableCellUpdated(rowIndex, columnIndex);
+            	}
             }
         }
         catch (Exception e) {
@@ -194,6 +200,13 @@ public class BoardLocationsTableModel extends AbstractTableModel {
                 return boardLocation.isEnabled();
             case 9:
                 return boardLocation.isCheckFiducials();
+			case 10: {
+				if (job.isUsingPanel()) {
+					return boardLocation.getPanelPos();
+				} else {
+					return "---";
+				}
+			}
             default:
                 return null;
         }

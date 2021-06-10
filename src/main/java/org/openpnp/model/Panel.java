@@ -145,6 +145,7 @@ public class Panel extends AbstractModelObject implements Identifiable {
                 // We already have board 0,0 in the list as this is the root
                 // PCB. No need to update it.
                 if (i == 0 && j == 0) {
+                	rootPCB.setPanelPos(String.format("(%d,%d)", j+1, i+1));
                     continue;
                 }
                                 
@@ -153,6 +154,7 @@ public class Panel extends AbstractModelObject implements Identifiable {
 
 	                // copy the existing root pcb's board
 	                BoardLocation newPCB = new BoardLocation(rootPCB.getBoard());
+	                newPCB.setPanelPos(String.format("(%d,%d)", i+1, j+1));
 	                newPCB.setCheckFiducials(rootPCB.isCheckFiducials());
 	                newPCB.setEnabled(rootPCB.isEnabled());
 	                newPCB.setSide(rootPCB.getSide());

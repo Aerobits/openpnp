@@ -46,6 +46,9 @@ public class BoardLocation extends AbstractModelObject {
                                                     // panels at this point
 
     @Attribute(required = false)
+    private String panelPos = new String("---"); 
+    
+    @Attribute(required = false)
     private boolean checkFiducials;
 
     @Attribute(required = false)
@@ -170,6 +173,16 @@ public class BoardLocation extends AbstractModelObject {
         String oldValue = this.panelId;
         this.panelId = id;
         firePropertyChange("panelId", oldValue, panelId);
+    }
+
+    public String getPanelPos() {
+        return panelPos;
+    }
+
+    public void setPanelPos(String pos) {
+        String oldValue = this.panelPos;
+        this.panelPos = pos;
+        firePropertyChange("panelPos", oldValue, panelPos);
     }
 
     public boolean isCheckFiducials() {
