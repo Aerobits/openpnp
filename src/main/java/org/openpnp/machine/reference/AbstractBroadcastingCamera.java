@@ -84,9 +84,18 @@ public abstract class AbstractBroadcastingCamera extends AbstractCamera implemen
                     Configuration.get().getMachine().addListener(new MachineListener.Adapter() {
                         @Override
                         public void machineHeadActivity(Machine machine, Head head) {
-                            if (!isPreviewSuspended()) {
-                                notifyCapture();
-                            }
+							/*
+							 * Triggered during:
+							 * 
+							 * ------REMOVED-----> Actuator - actuate, read 
+							 * Head - home 
+							 * Nozzle - loadNozzleTip, unloadNozzleTip, pick, place 
+							 * MotionPlanner - executeMotionPlan, waitForCompletion
+							 * 
+							 */
+                        	 if (!isPreviewSuspended()) {
+                                 notifyCapture();
+                             }
                         }
 
                         @Override 
