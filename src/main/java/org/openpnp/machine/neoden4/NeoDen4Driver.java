@@ -1198,6 +1198,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     
     @Override
     public void actuate(ReferenceActuator actuator, double value) throws Exception {
+        Logger.trace(String.format("Neoden actuate %s, %f", actuator.getName(), value));
     	boolean success = false;
     	for(int i=0; i<3; i++) {
         	try {
@@ -1219,6 +1220,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
     }
     
     private int getNozzleAirValue(int nozzleNum) throws Exception {
+        Logger.trace(String.format("Neoden getNozzleAirValue %d", nozzleNum));
 		assert (nozzleNum >= 0);
 		assert (nozzleNum <= 3);
 
@@ -1251,7 +1253,19 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 			throw new IOException("getNozzleAirValue error.");
 		} 
 		else {
-			return payload[nozzleNum];
+			int airValue = (int) payload[nozzleNum];
+			
+			if (airValue > 110) {
+				Logger.trace(String.format("Error in getNozzleAirValue! Value<-128 (%d)", airValue));
+				// HACK
+				// sometimes when usign small nozzletip 
+				// neoden returns values smaller than -128
+				// and thus the variable jumps for example from -128 to 127 
+				// Let's change the variable range
+				// from (-128, 127) to (-145, 110)
+				airValue = -128 - (128-airValue);
+			}
+			return airValue;
 		}
 	}
 
