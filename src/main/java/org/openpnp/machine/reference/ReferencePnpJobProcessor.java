@@ -1337,6 +1337,85 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
         
     }    
     
+
+
+    /**
+     * A simple planner which tries to fill each nozzle with a placement on
+     * each cycle 
+     */
+    @Root
+    public static class Neoden4PnpJobPlanner implements PnpJobPlanner {
+        @Override
+        public List<PlannedPlacement> plan(Head head, List<JobPlacement> jobPlacements) {
+            /**
+             * Create an empty List<PlannedPlacement> which will hold the results.
+             */
+            List<PlannedPlacement> plannedPlacements = new ArrayList<>();
+            
+            /**
+             * Get a list of all the nozzles. We make a copy of the list so that we can modify
+             * it within this function without modifying the machine. This makes the logic below
+             * easier. As we plan a nozzle we'll remove it from the list until none are left.
+             */
+            List<Nozzle> nozzles = new ArrayList<>(head.getNozzles());
+            
+            /**
+             * Same as above, except for NozzleTips.
+             */
+            List<NozzleTip> nozzleTips = new ArrayList<>(head.getMachine().getNozzleTips());
+            
+            /**
+             * Find placements for all nozzle tips
+             */
+            for (Nozzle nozzle : new ArrayList<>(nozzles)) {
+                PlannedPlacement plannedPlacement = planWithoutNozzleTipChange(nozzle, jobPlacements);
+                if (plannedPlacement != null) {
+                    plannedPlacements.add(plannedPlacement);
+                    jobPlacements.remove(plannedPlacement.jobPlacement);
+                    nozzles.remove(plannedPlacement.nozzle);
+                    nozzleTips.remove(plannedPlacement.nozzleTip);
+                }
+            }
+
+            /**
+             * Finally, we sort any planned placements by the nozzle name so that they are
+             * performed in the order of nozzle name. This is not really necessary but some users
+             * prefer it that way and it does no harm
+             */
+            plannedPlacements.sort(Comparator.comparing(plannedPlacement -> {
+                return plannedPlacement.nozzle.getName();
+            }));
+
+            return plannedPlacements;
+        }
+        
+        /**
+         * Try to find a planning solution for the given nozzle.
+         * This essentially just checks if there are any job placements
+         * remaining that are compatible with the currently loaded nozzle tip.
+         * @param nozzle
+         * @param jobPlacements
+         * @return
+         */
+        protected PlannedPlacement planWithoutNozzleTipChange(Nozzle nozzle, 
+                List<JobPlacement> jobPlacements) {
+            if (nozzle.getNozzleTip() == null) {
+                return null;
+            }
+            for (JobPlacement jobPlacement : jobPlacements) {
+                Placement placement = jobPlacement.getPlacement();
+                Part part = placement.getPart();
+                org.openpnp.model.Package pkg = part.getPackage();
+                NozzleTip nozzleTip = nozzle.getNozzleTip();
+                if (pkg.getCompatibleNozzleTips().contains(nozzleTip)) {
+                    return new PlannedPlacement(nozzle, nozzleTip, jobPlacement);
+                }
+            }
+            return null;
+        }
+    }
+    
+
     /**
      * A simple two-pass planner which tries to fill each nozzle with a placement on
      * each cycle while minimizing nozzle tip changes.

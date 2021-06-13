@@ -19,9 +19,13 @@
 
 package org.openpnp.machine.reference.wizards;
 
+import java.awt.List;
+import java.util.ArrayList;
+
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
@@ -32,6 +36,9 @@ import org.openpnp.gui.support.AbstractConfigurationWizard;
 import org.openpnp.gui.support.IntegerConverter;
 import org.openpnp.machine.reference.ReferencePnpJobProcessor;
 import org.openpnp.machine.reference.ReferencePnpJobProcessor.JobOrderHint;
+import org.openpnp.machine.reference.ReferencePnpJobProcessor.Neoden4PnpJobPlanner;
+import org.openpnp.machine.reference.ReferencePnpJobProcessor.SimplePnpJobPlanner;
+import org.openpnp.machine.reference.ReferencePnpJobProcessor.StraightforwardPnpJobPlanner;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -41,6 +48,7 @@ import com.jgoodies.forms.layout.RowSpec;
 @SuppressWarnings("serial")
 public class ReferencePnpJobProcessorConfigurationWizard extends AbstractConfigurationWizard {
     private final ReferencePnpJobProcessor jobProcessor;
+    private JComboBox comboBoxJobPlanners;
     private JComboBox comboBoxJobOrder;
     private JTextField maxVisionRetriesTextField;
 
@@ -60,7 +68,19 @@ public class ReferencePnpJobProcessorConfigurationWizard extends AbstractConfigu
             new RowSpec[] {
                 FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,
+                FormSpecs.RELATED_GAP_ROWSPEC,
+                FormSpecs.DEFAULT_ROWSPEC,
+                FormSpecs.RELATED_GAP_ROWSPEC,
                 FormSpecs.DEFAULT_ROWSPEC,}));
+        
+        JLabel lblJobPlanner = new JLabel("Job planner");
+        panelGeneral.add(lblJobPlanner, "2, 2, right, default");
+
+        ArrayList<String> jobPlanners = new ArrayList();
+        jobPlanners.add(Neoden4PnpJobPlanner.class.getName());
+        jobPlanners.add(StraightforwardPnpJobPlanner.class.getName());
+        jobPlanners.add(SimplePnpJobPlanner.class.getName());
+        comboBoxJobPlanners = new JComboBox();
 
         JLabel lblJobOrder = new JLabel(Translations.getString("MachineSetup.JobProcessors.ReferencePnpJobProcessor.Label.JobOrder"));
         panelGeneral.add(lblJobOrder, "2, 2, right, default");
