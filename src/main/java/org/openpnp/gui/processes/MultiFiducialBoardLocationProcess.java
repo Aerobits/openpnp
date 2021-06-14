@@ -404,6 +404,7 @@ public class MultiFiducialBoardLocationProcess {
     }
     
     private void finish() {
+        mainFrame.hideInstructions();
         jobPanel.refresh();
     }
 
@@ -411,7 +412,6 @@ public class MultiFiducialBoardLocationProcess {
         //Restore the old settings
         boardLocation.setLocation(savedBoardLocation);
         boardLocation.setPlacementTransform(savedPlacementTransform);
-        mainFrame.hideInstructions();
         isCancelled = true;
     }
 
