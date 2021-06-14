@@ -95,17 +95,30 @@ public class BoardLocation extends AbstractModelObject {
         return location;
     }
 
-    public void setLocation(Location location) {
-        Location oldValue = this.location;
-        this.location = location;
-        firePropertyChange("location", oldValue, location);
-        // If the location is changing it is not possible the placement transform is
-        // still valid, so clear it.
-        if (!this.location.equals(oldValue)) {
-            setPlacementTransform(null);
-        }
-    }
-    
+	public void setLocation(Location location) {
+		Location oldValue = this.location;
+		this.location = location;
+		firePropertyChange("location", oldValue, location);
+
+		// If the location (X, Y or Rotation) is changing it is not possible
+		// the placement transform is still valid, so clear it.
+		boolean resetTransform = false;
+
+		if (oldValue == null) {
+			resetTransform = true;
+		} else {
+			if (!this.location.getLengthX().equals(oldValue.getLengthX())
+					|| !this.location.getLengthY().equals(oldValue.getLengthY())
+					|| this.location.getRotation() != oldValue.getRotation()) {
+				resetTransform = true;
+			}
+		}
+
+		if (resetTransform) {
+			setPlacementTransform(null);
+		}
+	}
+
     public Side getSide() {
         return side;
     }
