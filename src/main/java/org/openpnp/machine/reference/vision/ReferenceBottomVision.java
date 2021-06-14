@@ -360,12 +360,16 @@ public class ReferenceBottomVision implements PartAlignment {
         MainFrame mainFrame = MainFrame.get();
         if (mainFrame != null) {
             try {
-                String s = String.format("%s : %s", part.getId(), offsets.toString());
+                String s = String.format("Part: %s\nSize: %.3fx%.3f\nOffsets: %s", 
+                		part.getId(),
+                		part.getPackage().getFootprint().getBodyWidth(),
+                		part.getPackage().getFootprint().getBodyHeight(), 
+                		offsets.toString());
                 mainFrame
                 .getCameraViews()
                 .getCameraView(camera)
                 .showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()), s,
-                        1500);
+                        2000);
             }
             catch (Exception e) {
                 // Throw away, just means we're running outside of the UI.
