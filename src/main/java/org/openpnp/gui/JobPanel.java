@@ -213,7 +213,9 @@ public class JobPanel extends JPanel {
 				// Highlight x,y,z,rotation depending on applied transform:
 				// - if board has active transform: green
 				// - if board has not active transform: red
-				boolean isPlacementsTransformed = tableModel.getBoardLocation(row).getPlacementTransform() != null;
+				int sortedRow = table.convertRowIndexToModel(row);
+				BoardLocation boardLocation = tableModel.getBoardLocation(sortedRow);
+				boolean isPlacementsTransformed = boardLocation.getPlacementTransform() != null;
 				
 				if ((col == 4 || col == 5 || col == 6 || col == 7)) {
 					if (isPlacementsTransformed) {
@@ -233,7 +235,6 @@ public class JobPanel extends JPanel {
 
 				// Set font bold if boardLocation is last active boardLocation
 				// last active -> set during Job.Placement.Starting
-				BoardLocation boardLocation = tableModel.getBoardLocation(row);
 				int currentBoardLocationHash = prefs.getInt("LAST_ACTIVE_BOARDLOCATION", -1);
 				if (boardLocation.hashCode() == currentBoardLocationHash) {
 					this.setFont(this.getFont().deriveFont(Font.ITALIC));
