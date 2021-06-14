@@ -51,6 +51,7 @@ import org.openpnp.spi.NozzleTip;
 import org.openpnp.spi.PartAlignment;
 import org.openpnp.spi.PnpJobPlanner;
 import org.openpnp.spi.PnpJobPlanner.PlannedPlacement;
+import org.openpnp.spi.PnpJobProcessor;
 import org.openpnp.spi.PnpJobProcessor.JobPlacement.Status;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.spi.base.AbstractPnpJobProcessor;
@@ -69,13 +70,30 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
         public Step step() throws JobProcessorException;
     }
     
-    public enum JobOrderHint {
+    public enum JobPlannerHint {
+        Simple,
+        Straightforward,
+        Neoden4
+    }
+    
+	public enum JobBoardOrderHint {
+		OneByOne, 
+		AllAtOnce
+	}
+    
+    public enum JobPartOrderHint {
         PartHeight,
         Part
     }
 
     @Attribute(required = false)
-    protected JobOrderHint jobOrder = JobOrderHint.PartHeight;
+    protected JobPlannerHint jobPlanner = JobPlannerHint.Straightforward;
+
+    @Attribute(required = false)
+    protected JobBoardOrderHint jobBoardOrder = JobBoardOrderHint.AllAtOnce;
+
+    @Attribute(required = false)
+    protected JobPartOrderHint jobPartOrder = JobPartOrderHint.PartHeight;
 
     @Attribute(required = false)
     protected int maxVisionRetries = 3;
@@ -83,7 +101,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
     protected int maxPlacementRetries = 2;
     
     @Element(required = false)
-    public PnpJobPlanner planner = new StraightforwardPnpJobPlanner();
+    public PnpJobPlanner planner = null; //new StraightforwardPnpJobPlanner(); // null;
 
     protected Job job;
 
@@ -445,26 +463,64 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
         public Step step() throws JobProcessorException {
             fireTextStatus("Planning placements.");
 
-            List<JobPlacement> jobPlacements;
+            List<JobPlacement> jobPlacements = getPendingJobPlacements();
+            
 
-            if (jobOrder.equals(JobOrderHint.Part)) {
+			switch (jobPartOrder) {
+			case Part:
                 // Get the list of unfinished placements and sort them by part.
-                    jobPlacements = getPendingJobPlacements().stream()
-                            .sorted(Comparator.comparing(JobPlacement::getPartId))
-                            .collect(Collectors.toList());
-            } 
-            else {
+                jobPlacements = jobPlacements.stream()
+                        .sorted(Comparator.comparing(JobPlacement::getPartId))
+                        .collect(Collectors.toList());
+				break;
+			case PartHeight:
                 // Get the list of unfinished placements and sort them by part height.
-                    jobPlacements = getPendingJobPlacements().stream()
-                            .sorted(Comparator
-                                .comparing(JobPlacement::getPartHeight)
-                                .thenComparing(JobPlacement::getPartId))
-                            .collect(Collectors.toList());
-            }
+                jobPlacements = jobPlacements.stream()
+                        .sorted(Comparator
+                            .comparing(JobPlacement::getPartHeight)
+                            .thenComparing(JobPlacement::getPartId))
+                        .collect(Collectors.toList());
+				break;
+			default:
+				throw new JobProcessorException(planner,
+						String.format("Wrong job parts order seleced (%s)!", jobBoardOrder.name()));
+			}
+			
+
+			switch (jobBoardOrder) {
+			case AllAtOnce:
+				break;
+			case OneByOne:
+				jobPlacements = jobPlacements.stream()
+									.sorted(Comparator
+											.comparing(l-> ((JobPlacement)l).getBoardLocation().getPanelPos()))
+									.collect(Collectors.toList());
+				break;
+			default:
+				throw new JobProcessorException(planner,
+						String.format("Wrong job boards order seleced (%s)!", jobBoardOrder.name()));
+			}
 
             if (jobPlacements.isEmpty()) {
                 return new Finish();
             }
+
+//			if (planner == null) {
+				switch (jobPlanner) {
+				case Neoden4:
+					planner = new Neoden4PnpJobPlanner();
+					break;
+				case Simple:
+					planner = new SimplePnpJobPlanner();
+					break;
+				case Straightforward:
+					planner = new StraightforwardPnpJobPlanner();
+					break;
+				default:
+					throw new JobProcessorException(planner,
+							String.format("Wrong job planner seleced (%s)!", jobPlanner.name()));
+				}
+//			}
 
             long t = System.currentTimeMillis();
             List<PlannedPlacement> plannedPlacements = planner.plan(head, jobPlacements);
@@ -475,6 +531,10 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
             }
 
             for (PlannedPlacement plannedPlacement : plannedPlacements) {
+            	
+            	Logger.info(String.format("Board %s, placement: %s", 
+            			plannedPlacement.jobPlacement.getBoardLocation().getPanelPos(), 
+            			plannedPlacement.toString()));
                 plannedPlacement.jobPlacement.setStatus(Status.Processing);
             }
             
@@ -1174,13 +1234,29 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
     public Wizard getConfigurationWizard() {
         return new ReferencePnpJobProcessorConfigurationWizard(this);
     }
-    
-    public JobOrderHint getJobOrder() {
-        return jobOrder;
+
+    public JobPlannerHint getJobPlanner() {
+        return jobPlanner;
     }
     
-    public void setJobOrder(JobOrderHint newJobOrder) {
-        this.jobOrder = newJobOrder;
+    public void setJobPlanner(JobPlannerHint newJobPlanner) {
+        this.jobPlanner = newJobPlanner;
+    }    
+
+    public JobPartOrderHint getJobPartOrder() {
+        return jobPartOrder;
+    }
+    
+    public void setJobPartOrder(JobPartOrderHint newJobPartOrder) {
+        this.jobPartOrder = newJobPartOrder;
+    }    
+
+    public JobBoardOrderHint getJobBoardOrder() {
+        return jobBoardOrder;
+    }
+    
+    public void setJobBoardOrder(JobBoardOrderHint newJobBoardOrder) {
+        this.jobBoardOrder = newJobBoardOrder;
     }    
 
     public int getMaxVisionRetries() {
@@ -1364,11 +1440,54 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
              */
             List<NozzleTip> nozzleTips = new ArrayList<>(head.getMachine().getNozzleTips());
             
+
+			/**
+			 * Get somehow reference to JobPartOrderHint to know if it's set to PartHeight
+			 */
+			PnpJobProcessor pnpJobProcessor = Configuration.get().getMachine().getPnpJobProcessor();
+			boolean sortByHeight = false;
+			if (pnpJobProcessor instanceof ReferencePnpJobProcessor) {
+				sortByHeight = ((ReferencePnpJobProcessor) pnpJobProcessor).getJobPartOrder()
+						.equals(JobPartOrderHint.PartHeight);
+			}
+			
             /**
-             * Find placements for all nozzle tips
+             * Find placements for all NozzleTips
              */
             for (Nozzle nozzle : new ArrayList<>(nozzles)) {
-                PlannedPlacement plannedPlacement = planWithoutNozzleTipChange(nozzle, jobPlacements);
+            	if (nozzle.getNozzleTip() == null) {
+                    return null;
+                }
+
+				/**
+				 * Try to find a planning solution for the given nozzle. This essentially just
+				 * checks if there are any job placements remaining that are compatible with the
+				 * currently loaded nozzle tip.
+				 * 
+				 * If JobPartOrderHint.PartHeight flag is set, we are going to search only in
+				 * the next 4 placements, because Neoden has 4 nozzles
+				 */
+    			PlannedPlacement plannedPlacement = null;
+    			List<JobPlacement> jobPlacementsToSearch;
+    			
+    			if (sortByHeight && (jobPlacements.size() >= 4)) {
+    				jobPlacementsToSearch = jobPlacements.subList(0, 4);
+    			} 
+    			else {
+    				jobPlacementsToSearch = jobPlacements;
+    			}
+    			
+				for (JobPlacement jobPlacement : jobPlacementsToSearch) {
+					Placement placement = jobPlacement.getPlacement();
+					Part part = placement.getPart();
+					org.openpnp.model.Package pkg = part.getPackage();
+					NozzleTip nozzleTip = nozzle.getNozzleTip();
+					if (pkg.getCompatibleNozzleTips().contains(nozzleTip)) {
+						plannedPlacement = new PlannedPlacement(nozzle, nozzleTip, jobPlacement);
+						break;
+					}
+				}
+                
                 if (plannedPlacement != null) {
                     plannedPlacements.add(plannedPlacement);
                     jobPlacements.remove(plannedPlacement.jobPlacement);
@@ -1387,31 +1506,6 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
             }));
 
             return plannedPlacements;
-        }
-        
-        /**
-         * Try to find a planning solution for the given nozzle.
-         * This essentially just checks if there are any job placements
-         * remaining that are compatible with the currently loaded nozzle tip.
-         * @param nozzle
-         * @param jobPlacements
-         * @return
-         */
-        protected PlannedPlacement planWithoutNozzleTipChange(Nozzle nozzle, 
-                List<JobPlacement> jobPlacements) {
-            if (nozzle.getNozzleTip() == null) {
-                return null;
-            }
-            for (JobPlacement jobPlacement : jobPlacements) {
-                Placement placement = jobPlacement.getPlacement();
-                Part part = placement.getPart();
-                org.openpnp.model.Package pkg = part.getPackage();
-                NozzleTip nozzleTip = nozzle.getNozzleTip();
-                if (pkg.getCompatibleNozzleTips().contains(nozzleTip)) {
-                    return new PlannedPlacement(nozzle, nozzleTip, jobPlacement);
-                }
-            }
-            return null;
         }
     }
     
