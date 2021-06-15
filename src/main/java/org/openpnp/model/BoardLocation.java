@@ -107,8 +107,8 @@ public class BoardLocation extends AbstractModelObject {
 		if (oldValue == null) {
 			resetTransform = true;
 		} else {
-			if (!this.location.getLengthX().equals(oldValue.getLengthX())
-					|| !this.location.getLengthY().equals(oldValue.getLengthY())
+			if (this.location.getX() != (oldValue.getX())
+					|| this.location.getY() != (oldValue.getY())
 					|| this.location.getRotation() != oldValue.getRotation()) {
 				resetTransform = true;
 			}
