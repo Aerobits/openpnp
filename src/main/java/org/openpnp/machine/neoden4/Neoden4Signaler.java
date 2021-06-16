@@ -45,7 +45,7 @@ public class Neoden4Signaler extends AbstractSignaler implements Runnable {
 					if (lastPlayError != playError) {
 						// If triggered show dialog
 						lastPlayError = playError;
-						sleepTime = 1000;
+						sleepTime = 10000;
 
 						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
@@ -63,7 +63,7 @@ public class Neoden4Signaler extends AbstractSignaler implements Runnable {
 				else if (playSuccess) {
 					if (lastPlaySuccess != playSuccess) {
 						lastPlaySuccess = playSuccess;
-						sleepTime = 1000;
+						sleepTime = 10000;
 
 						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
