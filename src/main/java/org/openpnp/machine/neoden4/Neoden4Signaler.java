@@ -1,5 +1,8 @@
 package org.openpnp.machine.neoden4;
 
+import javax.swing.SwingUtilities;
+
+import org.openpnp.gui.support.MessageBoxes;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.wizards.Neoden4SignalerConfigurationWizard;
 import org.openpnp.model.Configuration;
@@ -7,9 +10,10 @@ import org.openpnp.spi.Driver;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.spi.base.AbstractMachine;
 import org.openpnp.spi.base.AbstractSignaler;
+import org.pmw.tinylog.Logger;
 import org.simpleframework.xml.Attribute;
 
-public class Neoden4Signaler extends AbstractSignaler {
+public class Neoden4Signaler extends AbstractSignaler implements Runnable {
 
     @Attribute
     protected boolean enableErrorSound;
@@ -18,13 +22,70 @@ public class Neoden4Signaler extends AbstractSignaler {
     protected boolean enableFinishedSound;
 
     private ClassLoader classLoader = getClass().getClassLoader();
+
+	private boolean playError = false;
+	private boolean playSuccess = false;
+	private boolean lastPlayError = false;
+	private boolean lastPlaySuccess = false;
     
-//    private NeoDen4Driver neoden4Driver;
-//    
-//    public Neoden4Signaler() {
-//    	this.neoden4Driver = getNeoden4Driver();
-//    }
-    
+	public Neoden4Signaler() {
+		Thread thread = new Thread(this);
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	@Override
+	public void run() {
+		// Starting interval between signals
+		int sleepTime = 10000;
+		
+		while (!Thread.interrupted()) {
+			try {	
+				if (playError) {
+					if (lastPlayError != playError) {
+						// If triggered show dialog
+						lastPlayError = playError;
+						sleepTime = 1000;
+
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								MessageBoxes.infoBox("Click ok to confirm", "Job error!");
+								playError = false;
+								lastPlayError = false;
+							}
+						});
+					}
+					// Decrease interval between signals
+					sleepTime /= 1.2;
+					this.playSound(2, 250);
+					Thread.sleep(sleepTime);
+				} 
+				else if (playSuccess) {
+					if (lastPlaySuccess != playSuccess) {
+						lastPlaySuccess = playSuccess;
+						sleepTime = 1000;
+
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								MessageBoxes.infoBox("Click ok to confirm", "Job success!");
+								playSuccess = false;
+								lastPlaySuccess = false;
+							}
+						});
+					}
+					sleepTime /= 1.2;
+					this.playSound(3, 30);
+					Thread.sleep(sleepTime);
+				}
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		Logger.debug("Signaler " + getName() + " thread " + Thread.currentThread().getId() + " bye-bye.");
+	}
+	
 	private NeoDen4Driver getNeoden4Driver() {
 		NeoDen4Driver driver = null;
 
@@ -36,48 +97,23 @@ public class Neoden4Signaler extends AbstractSignaler {
 		}
 		return driver;
 	}
+	
+	private void playSound(int times, int delay) throws Exception {
+		NeoDen4Driver neoden4Driver = getNeoden4Driver();
 
-	public void playErrorSound() {
-		try {
-			NeoDen4Driver neoden4Driver = getNeoden4Driver();
+		for (int i = 0; i < times; i++) {
 			neoden4Driver.setBuzzer(true);
-			Thread.sleep(250);
+			Thread.sleep(delay);
 			neoden4Driver.setBuzzer(false);
-			Thread.sleep(250);
-			neoden4Driver.setBuzzer(true);
-			Thread.sleep(250);
-			neoden4Driver.setBuzzer(false);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
+			Thread.sleep(delay);
 		}
 	}
-
-    public void playSuccessSound() {
-		try {
-			NeoDen4Driver neoden4Driver = getNeoden4Driver();
-			neoden4Driver.setBuzzer(true);
-			Thread.sleep(30);
-			neoden4Driver.setBuzzer(false);
-			Thread.sleep(30);
-			neoden4Driver.setBuzzer(true);
-			Thread.sleep(30);
-			neoden4Driver.setBuzzer(false);
-			Thread.sleep(30);
-			neoden4Driver.setBuzzer(true);
-			Thread.sleep(30);
-			neoden4Driver.setBuzzer(false);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
 
     @Override
     public void signalMachineState(AbstractMachine.State state) {
         switch (state) {
             case ERROR: {
-                playErrorSound();
+                playError = true;
                 break;
             }
         }
@@ -87,12 +123,12 @@ public class Neoden4Signaler extends AbstractSignaler {
     public void signalJobProcessorState(AbstractJobProcessor.State state) {
         switch (state) {
             case ERROR: {
-                playErrorSound();
+                playError = true;
                 break;
             }
 
             case FINISHED: {
-                playSuccessSound();
+                playSuccess = true;
                 break;
             }
         }
