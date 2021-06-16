@@ -52,6 +52,7 @@ import org.openpnp.spi.PartAlignment;
 import org.openpnp.spi.PnpJobPlanner;
 import org.openpnp.spi.PnpJobPlanner.PlannedPlacement;
 import org.openpnp.spi.PnpJobProcessor;
+import org.openpnp.spi.PnpJobProcessor.JobPlacement;
 import org.openpnp.spi.PnpJobProcessor.JobPlacement.Status;
 import org.openpnp.spi.base.AbstractJobProcessor;
 import org.openpnp.spi.base.AbstractPnpJobProcessor;
@@ -1450,14 +1451,15 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
 				sortByHeight = ((ReferencePnpJobProcessor) pnpJobProcessor).getJobPartOrder()
 						.equals(JobPartOrderHint.PartHeight);
 			}
-			
-            /**
-             * Find placements for all NozzleTips
-             */
-            for (Nozzle nozzle : new ArrayList<>(nozzles)) {
-            	if (nozzle.getNozzleTip() == null) {
-                    return null;
-                }
+
+			/**
+			 * Find placements for all NozzleTips
+			 */
+			for (Nozzle nozzle : new ArrayList<>(nozzles)) {
+				if (nozzle.getNozzleTip() == null) {
+					Logger.warn(String.format("Nozzle %s doesn't have nozzle tip assigned!", nozzle.getName()));
+					continue;
+				}
 
 				/**
 				 * Try to find a planning solution for the given nozzle. This essentially just
@@ -1467,17 +1469,13 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
 				 * If JobPartOrderHint.PartHeight flag is set, we are going to search only in
 				 * the next 4 placements, because Neoden has 4 nozzles
 				 */
-    			PlannedPlacement plannedPlacement = null;
-    			List<JobPlacement> jobPlacementsToSearch;
-    			
-    			if (sortByHeight && (jobPlacements.size() >= 4)) {
-    				jobPlacementsToSearch = jobPlacements.subList(0, 4);
-    			} 
-    			else {
-    				jobPlacementsToSearch = jobPlacements;
-    			}
-    			
-				for (JobPlacement jobPlacement : jobPlacementsToSearch) {
+				PlannedPlacement plannedPlacement = null;
+				int i = 0;
+
+				for (JobPlacement jobPlacement : jobPlacements) {
+					if (i >= 3) {
+						break;
+					}
 					Placement placement = jobPlacement.getPlacement();
 					Part part = placement.getPart();
 					org.openpnp.model.Package pkg = part.getPackage();
@@ -1486,15 +1484,17 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
 						plannedPlacement = new PlannedPlacement(nozzle, nozzleTip, jobPlacement);
 						break;
 					}
+
+					i++;
 				}
-                
-                if (plannedPlacement != null) {
-                    plannedPlacements.add(plannedPlacement);
-                    jobPlacements.remove(plannedPlacement.jobPlacement);
-                    nozzles.remove(plannedPlacement.nozzle);
-                    nozzleTips.remove(plannedPlacement.nozzleTip);
-                }
-            }
+
+				if (plannedPlacement != null) {
+					plannedPlacements.add(plannedPlacement);
+					jobPlacements.remove(plannedPlacement.jobPlacement);
+					nozzles.remove(plannedPlacement.nozzle);
+					nozzleTips.remove(plannedPlacement.nozzleTip);
+				}
+			}
 
             /**
              * Finally, we sort any planned placements by the nozzle name so that they are
