@@ -48,7 +48,7 @@ public class Part extends AbstractModelObject implements Identifiable {
     private double speed = 1.0;
     
     @Attribute(required = false)
-    private int pickRetryCount = 0;
+    private int pickRetryCount = 2;
     
     @Attribute(required = false)
     private int placeRetryCount = 2;

@@ -603,7 +603,7 @@ public class ReferenceBottomVision implements PartAlignment {
         protected PreRotateUsage preRotateUsage = PreRotateUsage.Default;
 
         @Attribute(required = false)
-        protected PartSizeCheckMethod checkPartSizeMethod = PartSizeCheckMethod.Disabled;
+        protected PartSizeCheckMethod checkPartSizeMethod = PartSizeCheckMethod.BodySize;
 
         @Attribute(required = false)
         protected int checkSizeTolerancePercent = 20;
