@@ -1645,7 +1645,7 @@ public class JobPanel extends JPanel {
 
     boolean isAllFiducialChecked() {
     	for (BoardLocation boardLocation : job.getBoardLocations()) {
-    		if (boardLocation.getPlacementTransform() == null) {
+    		if (boardLocation.isEnabled() && boardLocation.getPlacementTransform() == null) {
     			return false;
     		}
     	}
