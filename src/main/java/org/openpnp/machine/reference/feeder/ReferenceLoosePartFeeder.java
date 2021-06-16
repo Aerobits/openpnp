@@ -56,28 +56,22 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
 
     @Override
     public void feed(Nozzle nozzle) throws Exception {
-//    	Neoden4Camera neodenCamera = null;
-//		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
-//			if (c instanceof Neoden4Camera) {
-//				neodenCamera = (Neoden4Camera) c;
-//				break;
-//			}
-//		}
-//		if (neodenCamera == null) {
-//			throw new Exception("Can't find Neoden4Camera!");
-//		} 
+    	Neoden4Camera neodenCamera = null;
+		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
+			if (c instanceof Neoden4Camera) {
+				neodenCamera = (Neoden4Camera) c;
+				break;
+			}
+		}
+		if (neodenCamera == null) {
+			throw new Exception("Can't find Neoden4Camera!");
+		} 
         
-        
-//        // Only for neoden4 camera hack that change image size
-//		int oldCamWidth = neodenCamera.getWidth();
-//		int oldCamHeight = neodenCamera.getHeight();
-//		int oldCamShiftX = neodenCamera.getShiftX();
-//		int oldCamShiftY = neodenCamera.getShiftY();
-//
-//		neodenCamera.setWidth(1024);
-//		neodenCamera.setHeight(1024);
-//		neodenCamera.setShiftX(0);
-//		neodenCamera.setShiftY(0);   
+        // Only for neoden4 camera hack that change image size
+		int oldCamCropWidth = neodenCamera.getCropWidth();
+		int oldCamCropHeight = neodenCamera.getCropHeight();
+		neodenCamera.setCropWidth(1024);
+		neodenCamera.setCropHeight(1024);  
         
         // Move to the feeder pick location
         Camera camera = nozzle.getHead().getDefaultCamera();
@@ -95,10 +89,8 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
                      .showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()),
                              1000);
 		} finally {
-//			neodenCamera.setWidth(oldCamWidth);
-//			neodenCamera.setHeight(oldCamHeight);
-//			neodenCamera.setShiftX(oldCamShiftX);
-//			neodenCamera.setShiftY(oldCamShiftY);
+			neodenCamera.setCropWidth(oldCamCropWidth);
+			neodenCamera.setCropHeight(oldCamCropHeight);  
 		}
     }
 
