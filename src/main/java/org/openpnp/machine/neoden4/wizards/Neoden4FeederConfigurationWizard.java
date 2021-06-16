@@ -55,7 +55,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     private JLabel lblActuatorId;
     private JButton btnActuateFeeder;
     private JTextField textFieldActuatorId;
-    private JPanel panelActuator;
+    private JPanel panelOther;
     private JPanel panelVision;
     private JCheckBox chckbxVisionEnabled;
     private JPanel panelVisionEnabled;
@@ -71,6 +71,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     private JTextField textFieldAoiY;
     private JTextField textFieldAoiWidth;
     private JTextField textFieldAoiHeight;
+    private JTextField textFieldFeedCount;
     private LocationButtonsPanel locationButtonsPanelFeedStart;
     private LocationButtonsPanel locationButtonsPanelFeedEnd;
     private JLabel lblWidth;
@@ -85,34 +86,53 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     	super(feeder, true, true);
         this.feeder = feeder;
 
+        
+        
         JPanel panelFields = new JPanel();
         panelFields.setLayout(new BoxLayout(panelFields, BoxLayout.Y_AXIS));
 
-        panelActuator = new JPanel();
-        panelActuator.setBorder(new TitledBorder(null, "Actuator", TitledBorder.LEADING,
+        panelOther = new JPanel();
+        panelOther.setBorder(new TitledBorder(null, "Other", TitledBorder.LEADING,
                 TitledBorder.TOP, null, null));
 
-        panelFields.add(panelActuator);
-        panelActuator.setLayout(new FormLayout(
+        panelFields.add(panelOther);
+        panelOther.setLayout(new FormLayout(
                 new ColumnSpec[] {
                 		FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
                 new RowSpec[] {
+                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
         
         lblActuatorId = new JLabel("Actuator Name");
-        panelActuator.add(lblActuatorId, "2, 2, right, default");
+        panelOther.add(lblActuatorId, "2, 2, right, default");
 
         textFieldActuatorId = new JTextField();
-        panelActuator.add(textFieldActuatorId, "4, 2");
+        panelOther.add(textFieldActuatorId, "4, 2");
         textFieldActuatorId.setColumns(5);
         
         btnActuateFeeder = new JButton(actuateFeederAction);
-        panelActuator.add(btnActuateFeeder, "6, 2");
+        panelOther.add(btnActuateFeeder, "6, 2");
         btnActuateFeeder.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        JLabel lblFeedCount = new JLabel("Feed Count");
+        panelOther.add(lblFeedCount, "2, 4, right, default");
+        
+        textFieldFeedCount = new JTextField();
+        panelOther.add(textFieldFeedCount, "4, 4, fill, default");
+        textFieldFeedCount.setColumns(10);
+        
+
+        JButton btnResetFeedCount = new JButton(new AbstractAction("Reset") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textFieldFeedCount.setText("0");
+            }
+        });
+        btnResetFeedCount.setHorizontalAlignment(SwingConstants.LEFT);
+        panelOther.add(btnResetFeedCount, "6, 4, left, default");
         
         //
         panelVision = new JPanel();
@@ -239,6 +259,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         BufferedImageIconConverter imageConverter = new BufferedImageIconConverter();
         
         addWrappedBinding(feeder, "actuatorName", textFieldActuatorId, "text");
+        addWrappedBinding(feeder, "feedCount", textFieldFeedCount, "text", intConverter);
         
         addWrappedBinding(feeder, "vision.enabled", chckbxVisionEnabled, "selected");
         addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon", imageConverter);
@@ -249,6 +270,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text", intConverter);
         
         ComponentDecorators.decorateWithAutoSelect(textFieldActuatorId);
+        ComponentDecorators.decorateWithAutoSelect(textFieldFeedCount);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiX);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiY);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiWidth);

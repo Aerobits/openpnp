@@ -481,9 +481,19 @@ public class JobPlacementsPanel extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
+			
+			boolean confirm = false;
+			
+			// Ask user for confirmation
+			if (getSelections().size() == 1) {
+				confirm = MessageBoxes.confirmBox("Caution!",
+						String.format("Do you really want to remove %s?", getSelections().get(0).getId()));
+			} else {
+				confirm = MessageBoxes.confirmBox("Caution!",
+						String.format("Do you really want to remove %d placements?", getSelections().size()));	
+			}
+			
 			for (Placement placement : getSelections()) {
-				boolean confirm = MessageBoxes.confirmBox("Caution!",
-						String.format("Do you really want to remove %s?", placement.getId()));
 				if (confirm) {
 					boardLocation.getBoard().removePlacement(placement);
 				}

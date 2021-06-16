@@ -36,6 +36,9 @@ public class Neoden4Feeder extends ReferenceFeeder {
     
     @Attribute(required = false)
     protected String actuatorName;
+
+    @Attribute(required = false)
+    private int feedCount = 0;
     
     @Element(required = false)
     protected Vision vision = new Vision();
@@ -86,6 +89,8 @@ public class Neoden4Feeder extends ReferenceFeeder {
             Logger.debug("final visionOffsets " + visionOffset);
             Logger.debug("Modified pickLocation {}", getPickLocation());
         }
+
+        setFeedCount(getFeedCount() + 1);
     }
 
     // TODO: Throw an Exception if vision fails.
@@ -207,6 +212,17 @@ public class Neoden4Feeder extends ReferenceFeeder {
         propertyChangeSupport.firePropertyChange("actuatorName", oldValue, actuatorName);
     }
 
+    public int getFeedCount() {
+        return feedCount;
+    }
+
+    public void setFeedCount(int feedCount) {
+    	// TODO: Consider reseting value when new part is set
+        int oldValue = this.feedCount;
+        this.feedCount = feedCount;
+        firePropertyChange("feedCount", oldValue, feedCount);
+    }
+    
     public Vision getVision() {
         return vision;
     }
