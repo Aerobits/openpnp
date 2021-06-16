@@ -102,7 +102,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
     protected int maxPlacementRetries = 2;
     
     @Element(required = false)
-    public PnpJobPlanner planner = null; //new StraightforwardPnpJobPlanner(); // null;
+    public PnpJobPlanner planner = null;
 
     protected Job job;
 
@@ -724,6 +724,8 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                     return;
                 }
                 catch (Exception e) {
+                	Logger.error(String.format("ERROR WHILE FEEDING %s", feeder.getName()));
+                	e.printStackTrace();
                     lastException = e;
                 }
             }
