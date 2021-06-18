@@ -29,6 +29,7 @@ import org.openpnp.gui.MainFrame;
 import org.openpnp.gui.support.PropertySheetWizardAdapter;
 import org.openpnp.gui.support.Wizard;
 import org.openpnp.machine.neoden4.Neoden4Camera;
+import org.openpnp.machine.reference.ReferenceCamera;
 import org.openpnp.machine.reference.ReferenceFeeder;
 import org.openpnp.machine.reference.feeder.wizards.ReferenceLoosePartFeederConfigurationWizard;
 import org.openpnp.model.Configuration;
@@ -56,27 +57,16 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
 
     @Override
     public void feed(Nozzle nozzle) throws Exception {
-    	Neoden4Camera neodenCamera = null;
-		for (Camera c : Configuration.get().getMachine().getAllCameras()) {
-			if (c instanceof Neoden4Camera) {
-				neodenCamera = (Neoden4Camera) c;
-				break;
-			}
-		}
-		if (neodenCamera == null) {
-			throw new Exception("Can't find Neoden4Camera!");
-		} 
-        
-        // Only for neoden4 camera hack that change image size
-		int oldCamCropWidth = neodenCamera.getCropWidth();
-		int oldCamCropHeight = neodenCamera.getCropHeight();
-		neodenCamera.setCropWidth(1024);
-		neodenCamera.setCropHeight(1024);  
-        
         // Move to the feeder pick location
         Camera camera = nozzle.getHead().getDefaultCamera();
-        MovableUtils.moveToLocationAtSafeZ(camera, location);
+
+        // Only for neoden4 camera hack that change image size
+		int oldCamCropWidth = ((ReferenceCamera)camera).getCropWidth();
+		int oldCamCropHeight = ((ReferenceCamera)camera).getCropHeight();
+		((ReferenceCamera)camera).setCropWidth(1024);
+		((ReferenceCamera)camera).setCropHeight(1024);  
         
+        MovableUtils.moveToLocationAtSafeZ(camera, location);
         
         try (CvPipeline pipeline = getPipeline()) {
             for (int i = 0; i < 3; i++) {
@@ -89,8 +79,8 @@ public class ReferenceLoosePartFeeder extends ReferenceFeeder {
                      .showFilteredImage(OpenCvUtils.toBufferedImage(pipeline.getWorkingImage()),
                              1000);
 		} finally {
-			neodenCamera.setCropWidth(oldCamCropWidth);
-			neodenCamera.setCropHeight(oldCamCropHeight);  
+			((ReferenceCamera)camera).setCropWidth(oldCamCropWidth);
+			((ReferenceCamera)camera).setCropHeight(oldCamCropHeight);  
 		}
     }
 
