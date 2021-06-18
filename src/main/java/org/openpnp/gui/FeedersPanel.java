@@ -137,6 +137,12 @@ public class FeedersPanel extends JPanel implements WizardContainer {
         toolBar.add(moveCameraToPickLocation);
         toolBar.add(moveToolToPickLocation);
 
+        // Set-to-empty button
+        toolBar.addSeparator();
+        JButton btnEmptyFeeder = new JButton(emptyFeederAction);
+        btnEmptyFeeder.setHideActionText(false);
+        toolBar.add(btnEmptyFeeder);
+        
         JPanel panel_1 = new JPanel();
         panel.add(panel_1, BorderLayout.EAST);
 
@@ -534,6 +540,37 @@ public class FeedersPanel extends JPanel implements WizardContainer {
         }
     };
 
+    public Action emptyFeederAction = new AbstractAction() {
+        {
+            putValue(SMALL_ICON, Icons.zero);
+            putValue(NAME, "Set empty");
+            putValue(SHORT_DESCRIPTION, "Set feeder part to empty.");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+        	
+        	boolean confirm = MessageBoxes.confirmBox("DANGER!", 
+        			"You are trying to set selected feeders' part to EMPTY.\nAre you sure?");
+        	
+        	if (!confirm) {
+        		return;
+        	}
+        	
+            List<Feeder> selections = getSelections();
+            Part emptyPart = configuration.getPart("EMPTY");
+            if (emptyPart == null) {
+            	MessageBoxes.errorBox(null, "Error", "Can't find part with id 'EMPTY'");
+            	return;
+            }
+            
+			for (Feeder feeder : selections) {
+				feeder.setPart(emptyPart);
+			}
+			tableModel.refresh();
+        }
+    };
+    
     public Action feedFeederAction = new AbstractAction() {
         {
             putValue(SMALL_ICON, Icons.feed);
