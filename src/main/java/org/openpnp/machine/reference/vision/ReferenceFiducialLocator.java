@@ -367,6 +367,11 @@ public class ReferenceFiducialLocator implements FiducialLocator {
             pipeline.setProperty("footprint", footprint);
             
             for (int i = 0; i < repeatFiducialRecognition; i++) {
+            	if (i == 0) {
+                    Configuration.get().getScripting().on("FirstFiducialPass", null);
+            	} else if (i == 1) {
+                    Configuration.get().getScripting().on("SecondFiducialPass", null);
+            	}
                 // Perform vision operation
                 pipeline.process();
 

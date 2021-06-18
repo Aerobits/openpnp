@@ -105,10 +105,7 @@ public class MultiFiducialBoardLocationProcess {
         Logger.trace("Board location tolerance = " + props.boardLocationTolerance);
         Logger.trace("Board scaling tolerance = " + props.scalingTolerance);
         Logger.trace("Board shearing tolerance = " + props.shearingTolerance);
-        
 
-        Configuration.get().getScripting().on("BeforeMultiFiducialBoardLocationProcess", null);
-        
         advance();
     }
 
