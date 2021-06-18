@@ -416,8 +416,8 @@ public class ReferenceFiducialLocator implements FiducialLocator {
                 // Move to where we actually found the fid
                 camera.moveTo(location);
     
-                if (i > 0) {
-                	//to average, keep a list of all matches except the first, since its probably most off
+                if (i > 1) {
+                	//to average, keep a list of all matches except the first and second, since its probably most off
                 	matchedLocations.add(location);
                 }
             
@@ -427,9 +427,9 @@ public class ReferenceFiducialLocator implements FiducialLocator {
             }
         }
         
-        if (this.enabledAveraging && matchedLocations.size() >= 2) {
+        if (this.enabledAveraging && matchedLocations.size() >= 3) {
             // the arithmetic average is calculated if user wishes to do so and there were at least
-            // 2 matches
+            // 3 matches
             double sumX = 0;
             double sumY = 0;
 
