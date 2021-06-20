@@ -72,6 +72,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     private JTextField textFieldAoiWidth;
     private JTextField textFieldAoiHeight;
     private JTextField textFieldFeedCount;
+    private JTextField textFieldDiscardCount;
     private LocationButtonsPanel locationButtonsPanelFeedStart;
     private LocationButtonsPanel locationButtonsPanelFeedEnd;
     private JLabel lblWidth;
@@ -102,6 +103,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,
                         FormSpecs.RELATED_GAP_COLSPEC, FormSpecs.DEFAULT_COLSPEC,},
                 new RowSpec[] {
+                        FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
@@ -134,6 +136,22 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         btnResetFeedCount.setHorizontalAlignment(SwingConstants.LEFT);
         panelOther.add(btnResetFeedCount, "6, 4, left, default");
         
+        JLabel lblDiscardCount = new JLabel("Discard Count");
+        panelOther.add(lblDiscardCount, "2, 6, right, default");
+        
+        textFieldDiscardCount = new JTextField();
+        panelOther.add(textFieldDiscardCount, "4, 6, fill, default");
+        textFieldDiscardCount.setColumns(10);
+        
+        JButton btnResetDiscardCount = new JButton(new AbstractAction("Reset") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	textFieldDiscardCount.setText("0");
+            }
+        });
+        btnResetDiscardCount.setHorizontalAlignment(SwingConstants.LEFT);
+        panelOther.add(btnResetDiscardCount, "6, 6, left, default");
+       
         //
         panelVision = new JPanel();
         panelVision.setBorder(new TitledBorder(null, "Vision", TitledBorder.LEADING,
@@ -260,6 +278,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         
         addWrappedBinding(feeder, "actuatorName", textFieldActuatorId, "text");
         addWrappedBinding(feeder, "feedCount", textFieldFeedCount, "text", intConverter);
+        addWrappedBinding(feeder, "discardCount", textFieldDiscardCount, "text", intConverter);
         
         addWrappedBinding(feeder, "vision.enabled", chckbxVisionEnabled, "selected");
         addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon", imageConverter);
@@ -271,6 +290,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         
         ComponentDecorators.decorateWithAutoSelect(textFieldActuatorId);
         ComponentDecorators.decorateWithAutoSelect(textFieldFeedCount);
+        ComponentDecorators.decorateWithAutoSelect(textFieldDiscardCount);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiX);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiY);
         ComponentDecorators.decorateWithAutoSelect(textFieldAoiWidth);

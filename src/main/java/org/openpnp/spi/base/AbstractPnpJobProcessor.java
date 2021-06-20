@@ -3,6 +3,7 @@ package org.openpnp.spi.base;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.openpnp.machine.neoden4.Neoden4Feeder;
 import org.openpnp.model.Configuration;
 import org.openpnp.model.Part;
 import org.openpnp.spi.Feeder;
@@ -44,12 +45,24 @@ public abstract class AbstractPnpJobProcessor extends AbstractJobProcessor
             Logger.warn(e);
         }
         try {
-            // move to the discard location
+        	// Save part reference to find feeder
+            Part part = nozzle.getPart();
+            
+        	// move to the discard location
             MovableUtils.moveToLocationAtSafeZ(nozzle,
                     Configuration.get().getMachine().getDiscardLocation());
             // discard the part
             nozzle.place();
             nozzle.moveToSafeZ();
+            
+            // If discarded part's feeder is instance of Neoden4Feeder
+            // increment discard count
+            Feeder feeder = findFeeder(Configuration.get().getMachine(), part);
+            if (feeder instanceof Neoden4Feeder) {
+            	int discardCount = ((Neoden4Feeder) feeder).getDiscardCount();
+            	((Neoden4Feeder) feeder).setDiscardCount(discardCount + 1);
+            }
+            
             try {
                 Map<String, Object> globals = new HashMap<>();
                 globals.put("nozzle", nozzle);
