@@ -358,7 +358,9 @@
 							<failsOnError>true</failsOnError>
 							<linkXRef>false</linkXRef>
 							<!-- Exclude Eagle importer code, which is auto generated -->
-							<excludes>org/openpnp/model/eagle/xml/*</excludes>
+							<excludes>org/openpnp/model/eagle/xml/*,
+							<!-- Exclude Neoden4CamDll because of native functions naming-->
+							org/openpnp/machine/neoden4/Neoden4CamDll*</excludes>
 						</configuration>
 						<goals>
 							<goal>check</goal>

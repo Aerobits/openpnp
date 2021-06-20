@@ -22,8 +22,9 @@ public class MatView extends JComponent {
     private Double zoom = 1.0;
 
 	public void setZoom(Double val) {
-		if (val >= 1.0 && val <= 4.0)
+		if (val >= 1.0 && val <= 4.0) {
 			this.zoom = val;
+		}
 	}
 
 	public Double getZoom() {

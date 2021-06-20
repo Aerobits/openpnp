@@ -343,8 +343,9 @@ public class PartsPanel extends JPanel implements WizardContainer {
 			ArrayList<String> partsId = new ArrayList<String>();
 			for (Placement p : jobPlacements) {
 				Part part = p.getPart();
-				if (part != null)
+				if (part != null) {
 					partsId.add(part.getId());
+				}
 			}
 
 			// Create new row filter that checks if part is in job

@@ -62,13 +62,14 @@ public class PartsComboBoxModel extends DefaultComboBoxModel implements Property
     public void filterJobElements() {
     	// Get all placements' parts
 		List<BoardLocation> jobBoardLocations = MainFrame.get().getJobTab().getJob().getBoardLocations();
-		if (jobBoardLocations.size() == 0)
+		if (jobBoardLocations.size() == 0) {
 			return;
-
+		}
+		
 		List<Placement> jobPlacements = jobBoardLocations.get(0).getBoard().getPlacements();
-		if (jobPlacements.size() == 0)
+		if (jobPlacements.size() == 0) {
 			return;
-
+    	}
 		HashSet<Part> placementsParts = new HashSet<>();
 		for (Placement p : jobPlacements) {
 			placementsParts.add(p.getPart());
