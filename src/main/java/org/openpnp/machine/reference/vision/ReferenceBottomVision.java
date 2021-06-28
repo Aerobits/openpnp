@@ -158,7 +158,7 @@ public class ReferenceBottomVision implements PartAlignment {
                 // the center of the camera to the located part.
                 offsets = VisionUtils.getPixelCenterOffsets(camera, rect.center.x, rect.center.y);
 
-                double angleOffset = VisionUtils.getPixelAngle(camera, rect.angle) - wantedAngle - placementLocation.getRotation();
+                double angleOffset = VisionUtils.getPixelAngle(camera, rect.angle) - diff;
                 // Most OpenCV Pipelines can only tell us the angle of the recognized rectangle in a   
                 // wrapping-around range of 0° .. 90° as it has no notion of which rectangle side 
                 // is which. We can assume that the part is never picked more than +/-45º rotated.
