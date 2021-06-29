@@ -693,7 +693,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                 checkPartOff(nozzle, part);
 
                 try {
-                    feederPickRetry(nozzle, feeder, placement, part);
+                    feederPickRetry(nozzle, feeder, plannedPlacement, part);
                 }
                 catch (JobProcessorException jpe) {
                     lastException = jpe;
@@ -753,11 +753,11 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
             }
         }
         
-        private void feederPickRetry(Nozzle nozzle, Feeder feeder, Placement placement, Part part) throws JobProcessorException {
+        private void feederPickRetry(Nozzle nozzle, Feeder feeder, PlannedPlacement plannedPlacement, Part part) throws JobProcessorException {
             Exception lastException = null;
             for (int i = 0; i < 1 + feeder.getPickRetryCount(); i++) {
                 try {
-                    pick(nozzle, feeder, placement, part);
+                    pick(nozzle, feeder, plannedPlacement, part);
                     postPick(feeder, nozzle);
                     checkPartOn(nozzle);
                     return;
@@ -769,16 +769,23 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
             throw new JobProcessorException(feeder, lastException);
         }
         
-        private void pick(Nozzle nozzle, Feeder feeder, Placement placement, Part part) throws JobProcessorException {
+        private void pick(Nozzle nozzle, Feeder feeder, PlannedPlacement plannedPlacement, Part part) throws JobProcessorException {
             try {
                 fireTextStatus("Pick %s from %s for %s.", part.getId(), feeder.getName(),
-                        placement.getId());
+                		plannedPlacement.jobPlacement.getPlacement().getId());
                 
                 
                 //-------------------------------------------------------------------
                 //HERE IS HACK
                 Location pick = feeder.getPickLocation();
-                Location placeLocation = placement.getLocation();
+                	
+                final BoardLocation boardLocation = plannedPlacement.jobPlacement.getBoardLocation();
+                final Placement placement = plannedPlacement.jobPlacement.getPlacement();
+                
+                // Check if there is a fiducial override for the board location and if so, use it.
+                Location placeLocation =
+                        Utils2D.calculateBoardPlacementLocation(boardLocation, placement.getLocation());
+                
                 
 //                pick -2
 //                place 180
