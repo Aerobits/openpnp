@@ -142,6 +142,8 @@ public class ReferenceBottomVision implements PartAlignment {
         MovableUtils.moveToLocationAtSafeZ(nozzle, nozzleLocation);
         final Location center = new Location(maxLinearOffset.getUnits());
 
+        RotatedRect rect = null;
+        
         try (CvPipeline pipeline = partSettings.getPipeline()) {
 
             // The running, iterative offset.
@@ -149,7 +151,7 @@ public class ReferenceBottomVision implements PartAlignment {
             Location offsets = new Location(nozzleLocation.getUnits());
             // Try getting a good fix on the part in multiple passes.
             for(int pass = 0;;) {
-                RotatedRect rect = processPipelineAndGetResult(pipeline, camera, part, nozzle);
+                rect = processPipelineAndGetResult(pipeline, camera, part, nozzle);
                 camera=(Camera)pipeline.getProperty("camera");
 
                 Logger.debug("Bottom vision part {} result rect {}", part.getId(), rect);
@@ -193,10 +195,10 @@ public class ReferenceBottomVision implements PartAlignment {
                     Logger.debug("Offsets too large {} : center offset {} > {}", 
                             offsets, center.getLinearDistanceTo(offsets), _maxLinearOffset); 
                 } 
-                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  _maxLinearOffset) {
-                    Logger.debug("Offsets too large {} : corner offset {} > {}", 
-                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), _maxLinearOffset); 
-                }
+//                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  _maxLinearOffset) {
+//                    Logger.debug("Offsets too large {} : corner offset {} > {}", 
+//                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), _maxLinearOffset); 
+//                }
                 else if (Math.abs(angleOffset) > _maxAngularOffset) {
                     Logger.debug("Offsets too large {} : angle offset {} > {}", 
                             offsets, Math.abs(angleOffset), _maxAngularOffset);
@@ -230,7 +232,7 @@ public class ReferenceBottomVision implements PartAlignment {
             
             
             Logger.debug("Final offsets {}", offsets);
-            displayResult(pipeline, part, offsets, camera);
+            displayResult(pipeline, part, rect, offsets, camera);
             return new PartAlignment.PartAlignmentOffset(offsets, true);
         }
     }
@@ -244,8 +246,10 @@ public class ReferenceBottomVision implements PartAlignment {
         
         MovableUtils.moveToLocationAtSafeZ(nozzle, wantedLocation);
 
+        RotatedRect rect = null;
+        
         try (CvPipeline pipeline = partSettings.getPipeline()) {
-            RotatedRect rect = processPipelineAndGetResult(pipeline, camera, part, nozzle);
+            rect = processPipelineAndGetResult(pipeline, camera, part, nozzle);
             camera=(Camera)pipeline.getProperty("camera");
 
             Logger.debug("Bottom vision part {} result rect {}", part.getId(), rect);
@@ -277,7 +281,7 @@ public class ReferenceBottomVision implements PartAlignment {
             offsets = offsets.derive(null, null, null, angleOffset);
             Logger.debug("Final offsets {}", offsets);
 
-            displayResult(pipeline, part, offsets, camera);
+            displayResult(pipeline, part, rect, offsets, camera);
 
             return new PartAlignmentOffset(offsets, false);
         }
@@ -360,14 +364,19 @@ public class ReferenceBottomVision implements PartAlignment {
         return true;
     }
 
-    private static void displayResult(CvPipeline pipeline, Part part, Location offsets, Camera camera) {
-        MainFrame mainFrame = MainFrame.get();
+    private static void displayResult(CvPipeline pipeline, Part part, RotatedRect partRect, Location offsets, Camera camera) {
+        
+        Location unitsPerPixel = camera.getUnitsPerPixel();
+        double uX = unitsPerPixel.getX();
+        double uY = unitsPerPixel.getY();
+    	
+    	MainFrame mainFrame = MainFrame.get();
         if (mainFrame != null) {
             try {
                 String s = String.format("Part: %s\nSize: %.3fx%.3f\nOffsets: %s", 
                 		part.getId(),
-                		part.getPackage().getFootprint().getBodyWidth(),
-                		part.getPackage().getFootprint().getBodyHeight(), 
+                		partRect.size.width*uX,
+                		partRect.size.height*uY, 
                 		offsets.toString());
                 mainFrame
                 .getCameraViews()
