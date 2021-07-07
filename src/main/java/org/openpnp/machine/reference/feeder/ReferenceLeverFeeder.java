@@ -26,6 +26,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import javax.swing.Action;
 
@@ -416,11 +417,17 @@ public class ReferenceLeverFeeder extends ReferenceFeeder {
         public Vision() {
             Configuration.get().addListener(new ConfigurationListener.Adapter() {
                 @Override
-                public void configurationComplete(Configuration configuration) throws Exception {
+                public void configurationComplete(Configuration configuration) {
                     if (templateImageName != null) {
-                        File file = configuration.getResourceFile(Vision.this.getClass(),
-                                templateImageName);
-                        templateImage = ImageIO.read(file);
+                    	try {
+	                        File file = configuration.getResourceFile(Vision.this.getClass(),
+	                                templateImageName);
+	                        templateImage = ImageIO.read(file);
+                    	}
+                    	catch(IOException exception) {
+                    		enabled = false;
+                    		Logger.warn("Cannot load template image: {} ", templateImageName);
+                    	}
                     }
                 }
             });

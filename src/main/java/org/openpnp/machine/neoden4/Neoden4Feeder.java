@@ -348,7 +348,13 @@ public class Neoden4Feeder extends ReferenceFeeder {
                     if (templateImageName != null) {
                         File file = configuration.getResourceFile(Vision.this.getClass(),
                                 templateImageName);
-                        templateImage = ImageIO.read(file);
+                        try {
+                        	templateImage = ImageIO.read(file);
+                        }
+                    	catch(IOException exception) {
+                    		enabled = false;
+                    		Logger.warn("Cannot load template image: {} ", templateImageName);
+                    	}
                     }
                 }
             });

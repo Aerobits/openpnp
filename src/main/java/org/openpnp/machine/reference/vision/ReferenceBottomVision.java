@@ -124,14 +124,14 @@ public class ReferenceBottomVision implements PartAlignment {
         double diff = wantedAngle - 90;
         wantedAngle = 90;
 
-        double _maxLinearOffset = 0.0;
-        double _maxAngularOffset = 0.0;
+        double tmpMaxLinearOffset = 0.0;
+        double tmpMaxAngularOffset = 0.0;
         if (partSettings.usePreciseAlign == true) {
-        	_maxLinearOffset = getMaxLinearOffsetPrecise().getValue();
-        	_maxAngularOffset = getMaxAngularOffsetPrecise();
+        	tmpMaxLinearOffset = getMaxLinearOffsetPrecise().getValue();
+        	tmpMaxAngularOffset = getMaxAngularOffsetPrecise();
         } else {
-        	_maxLinearOffset = getMaxLinearOffset().getValue();
-        	_maxAngularOffset = getMaxAngularOffset();
+        	tmpMaxLinearOffset = getMaxLinearOffset().getValue();
+        	tmpMaxAngularOffset = getMaxAngularOffset();
         }
         
         wantedAngle = angleNorm(wantedAngle, 180.);
@@ -191,17 +191,17 @@ public class ReferenceBottomVision implements PartAlignment {
                 Location corner = VisionUtils.getPixelCenterOffsets(camera, corners[0].x, corners[0].y)
                         .convertToUnits(maxLinearOffset.getUnits());
                 Location cornerWithAngularOffset = corner.rotateXy(angleOffset);
-                if (center.getLinearDistanceTo(offsets) > _maxLinearOffset) {
+                if (center.getLinearDistanceTo(offsets) > tmpMaxLinearOffset) {
                     Logger.debug("Offsets too large {} : center offset {} > {}", 
-                            offsets, center.getLinearDistanceTo(offsets), _maxLinearOffset); 
+                            offsets, center.getLinearDistanceTo(offsets), tmpMaxLinearOffset); 
                 } 
-//                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  _maxLinearOffset) {
-//                    Logger.debug("Offsets too large {} : corner offset {} > {}", 
-//                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), _maxLinearOffset); 
+                else if (Math.abs(angleOffset) > tmpMaxAngularOffset) {
 //                }
-                else if (Math.abs(angleOffset) > _maxAngularOffset) {
+//                            offsets, corner.getLinearDistanceTo(cornerWithAngularOffset), _maxLinearOffset); 
+//                    Logger.debug("Offsets too large {} : corner offset {} > {}", 
+//                else if (corner.getLinearDistanceTo(cornerWithAngularOffset) >  _maxLinearOffset) {
                     Logger.debug("Offsets too large {} : angle offset {} > {}", 
-                            offsets, Math.abs(angleOffset), _maxAngularOffset);
+                            offsets, Math.abs(angleOffset), tmpMaxAngularOffset);
                 }
                 else {
                 	if(partSizeCheck(part, partSettings, rect, camera)) {
