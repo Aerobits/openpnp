@@ -311,7 +311,7 @@ public class ReferenceBottomVision implements PartAlignment {
         // Make sure width is the longest dimension
         if (checkHeight > checkWidth) {
             double height = checkHeight;
-            double width = checkHeight;
+            double width = checkWidth;
             checkWidth = height;
             checkHeight = width;
         }
@@ -337,22 +337,26 @@ public class ReferenceBottomVision implements PartAlignment {
         double pxMaxHeight = pxHeight + heightTolerance;
         double pxMinHeight = pxHeight - heightTolerance;
 
+        Location unitsPerPixel = camera.getUnitsPerPixel();
+        double uX = unitsPerPixel.getX();
+        double uY = unitsPerPixel.getY();
+        
         if (measuredSize.width > pxMaxWidth) {
-            Logger.debug("Package pixel width {} : limit {} : measured {}", pxWidth, pxMaxWidth, measuredSize.width);
+            Logger.debug("Package pixel width {} : limit {} : measured {}", pxWidth*uX, pxMaxWidth*uX, measuredSize.width*uX);
         } else if (measuredSize.width < pxMinWidth) {
-            Logger.debug("Package pixel width {} : limit {} : measured {}", pxWidth, pxMinWidth, measuredSize.width);
+            Logger.debug("Package pixel width {} : limit {} : measured {}", pxWidth*uX, pxMinWidth*uX, measuredSize.width*uX);
             return false;
         } else if (measuredSize.height > pxMaxHeight) {
-            Logger.debug("Package pixel height {} : limit {} : measured {}", pxHeight, pxMaxHeight,
-                    measuredSize.height);
+            Logger.debug("Package pixel height {} : limit {} : measured {}", pxHeight*uY, pxMaxHeight*uY,
+                    measuredSize.height*uY);
             return false;
         } else if (measuredSize.height < pxMinHeight) {
-            Logger.debug("Package pixel height {} : limit {} : measured {}", pxHeight, pxMinHeight,
-                    measuredSize.height);
+            Logger.debug("Package pixel height {} : limit {} : measured {}", pxHeight*uY, pxMinHeight*uY,
+                    measuredSize.height*uY);
             return false;
         }
 
-        Logger.debug("Package {} pixel size ok. Width {}, Height {}", part.getId(), measuredSize.width, measuredSize.height);
+        Logger.debug("Package {} pixel size ok. Width {}, Height {}", part.getId(), measuredSize.width*uX, measuredSize.height*uY);
         return true;
     }
 
