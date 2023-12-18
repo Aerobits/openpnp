@@ -944,7 +944,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         		Thread.sleep(1000);
         		flushInput();
         		Thread.sleep(1000);
-                Logger.warn(String.format("Recovered moveTo: try %d, exception %s, [%d %d %d]", i, e.toString(), move.toString()));
+                Logger.warn(String.format("Recovered moveTo: try %d, exception %s, [%s]", i, e.toString(), move.toString()));
         	}
     	}
     	
