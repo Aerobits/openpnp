@@ -695,7 +695,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.warn("Recovered feed");
+                Logger.warn(String.format("Recovered feed: try %d, exception %s, [%d %d %d]", i, e.toString(), id, strength, feedRate));
         		Thread.sleep(1000);
         	}
     	}
@@ -756,7 +756,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.warn("Recovered peel");
+                Logger.warn(String.format("Recovered peel: try %d, exception %s, [%d %d %d]", i, e.toString(), id, strength, feedRate));
         		Thread.sleep(1000);
         	}
     	}
@@ -944,7 +944,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         		Thread.sleep(1000);
         		flushInput();
         		Thread.sleep(1000);
-        		Logger.warn("Recovered moveTo");
+                Logger.warn(String.format("Recovered moveTo: try %d, exception %s, [%s]", i, e.toString(), move.toString()));
         	}
     	}
     	
@@ -1232,7 +1232,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         	catch (Exception e){
         		Thread.sleep(1000);
         		flushInput();
-        		Logger.warn("Recovered actuate");
+        		Logger.warn(String.format("Recovered actuate: try %d, exception %s, [%s]", i, e.toString(), actuator.toString()));
         		Thread.sleep(1000);
         	}
     	}
@@ -1267,7 +1267,7 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
 			} catch (Exception e) {
 				Thread.sleep(1000);
 				flushInput();
-				Logger.warn("Recovered getNozzleAirValue");
+                Logger.warn(String.format("Recovered getNozzleAirValue: try %d, exception %s, Nozzle[%d]", i, e.toString(), nozzleNum));
 				Thread.sleep(1000);
 			}
 		}
