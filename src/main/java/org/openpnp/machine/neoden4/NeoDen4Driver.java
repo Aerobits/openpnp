@@ -699,48 +699,105 @@ public class NeoDen4Driver extends AbstractReferenceDriver {
         		Thread.sleep(1000);
         	}
     	}
-    	
-    	if(!success) {
-    		throw new IOException("Feed error.");
-    	}
+
+        if(!success) {
+            throw new IOException("Feed error.");
+        }
     }
 
+    private void changeFeederIdInternal(int oldId, int newId) throws Exception {
+        write(0x3f);
+        expect(0x0c);
+
+        write(0x46+oldId);
+        read();
+
+        write(0xff);
+        expect(0x00);
+
+        write(0x46+oldId);
+        read();
+
+        byte[] b = new byte[8];
+
+        b[0] = (byte) newId;
+        b[7] = (byte) 0x01;
+        writeWithChecksum(b);
+
+        write(0x3f);
+        expect(0x0c);
+
+        write(0x46+oldId);
+        read();
+    }
+
+    public void changeFeederId(int oldId, int newId) throws Exception {
+        Logger.debug(String.format("changeFeederId, oldId=%d, newId=%d", oldId, newId));
+        if((oldId < 0)||(oldId >= 100)) {
+            throw new IOException("changeFeederId oldId must be between 0-99.");
+        }
+        else {
+            if((newId < 0)||(newId >= 100)) {
+                throw new IOException("changeFeederId newId must be between 0-99.");
+            }
+            else {
+                boolean success = false;
+                for(int i=0; i<3; i++) {
+                    try {
+                        changeFeederIdInternal(oldId, newId);
+                        success = true;
+                        break;
+                    }
+                    catch (Exception e){
+                        Thread.sleep(1000);
+                        flushInput();
+                        Logger.warn("Recovered changeFeederId");
+                        Thread.sleep(1000);
+                    }
+                }
+                
+                if(!success) {
+                    throw new IOException("changeFeederId error.");
+                }
+            }
+        }
+    }
     private void peelInternal(int id, int strength, int feedRate) throws Exception {
 
-    	boolean isTopHalf = false;
-    	
-    	if(id >= 20) {
-    		isTopHalf = true;
-    	}
-    	
-    	if(!isTopHalf) {
+        boolean isTopHalf = false;
+
+        if(id >= 20) {
+            isTopHalf = true;
+        }
+    
+        if(!isTopHalf) {
             write(0x4c);
             expect(0x01);
-            
+
             write(0xcc);
             expect(0x09);
-            
+
             byte[] b = new byte[8];
             b[0] = (byte) id;
             b[1] = (byte) feedRate;
             b[2] = (byte) strength;
             writeWithChecksum(b);
             pollFor(0x0c, 0x49);
-    	}
-    	else {
+        }
+        else {
 
-    		write(0x4e);
-    		expect(0x03);
+            write(0x4e);
+            expect(0x03);
 
-    		write(0xce);
-    		expect(0x0B);
+            write(0xce);
+            expect(0x0B);
 
-    		byte[] b = new byte[8];
-    		b[0] = (byte) (id-19);
-    		b[1] = (byte) feedRate;
-    		b[2] = (byte) strength;
-    		writeWithChecksum(b);
-    		pollFor(0x0E, 0x4B);
+            byte[] b = new byte[8];
+            b[0] = (byte) (id-19);
+            b[1] = (byte) feedRate;
+            b[2] = (byte) strength;
+            writeWithChecksum(b);
+            pollFor(0x0E, 0x4B);
     	}
     }
     
