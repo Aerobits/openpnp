@@ -4,6 +4,11 @@
 
 Open Source SMT Pick and Place Hardware and Software
 
+## **Important** environment configuration
+
+- Eclipse 2018-09 (4.9.0)
+- JavaSE-1.8 (jre1.8.0_281)
+
 ## Introduction
 
 OpenPnP is a project to create the plans, prototype and software for a completely Open Source SMT
