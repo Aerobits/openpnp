@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 	
 import org.openpnp.gui.JobPanel;
@@ -58,6 +59,7 @@ public class MultiFiducialBoardLocationProcess {
     private final Camera camera;
 
     private int step;
+    private boolean isSuccess = false;
 
     private Location currentMeasuredLocation;
     private Placement currentPlacement;
@@ -94,6 +96,7 @@ public class MultiFiducialBoardLocationProcess {
         step = 1;
         idxCurrentBoard = 0;
         
+        
         props = (MultiFiducialBoardLocationProperties) Configuration.get().getMachine().
                     getProperty("MultiFiducialBoardLocationProperties");
         
@@ -107,6 +110,21 @@ public class MultiFiducialBoardLocationProcess {
         Logger.trace("Board shearing tolerance = " + props.shearingTolerance);
 
         advance();
+        
+        
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("isSuccess", this.isSuccess);
+            Configuration.get()
+                         .getScripting()
+                         .on("Job.AfterMFBL", params);
+        }
+        catch (Exception e) {
+        	//TODO: Czaro - Naprawić exception
+            //throw new JobProcessorException(null, e);
+        }
+        
+        
     }
 
     private void advance() {
@@ -403,6 +421,7 @@ public class MultiFiducialBoardLocationProcess {
     private void finish() {
         mainFrame.hideInstructions();
         jobPanel.refresh();
+        this.isSuccess = true;
     }
 
     private void cancel() {
