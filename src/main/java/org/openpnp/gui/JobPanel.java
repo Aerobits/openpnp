@@ -744,6 +744,21 @@ public class JobPanel extends JPanel {
                     Translations.getString("JobPanel.Action.Job.Start.Description")); //$NON-NLS-1$
             stopJobAction.setEnabled(false);
             stepJobAction.setEnabled(true);
+            
+            try {
+                HashMap<String, Object> params = new HashMap<>();
+                params.put("job", job);
+                params.put("jobProcessor", this);
+                Configuration.get()
+                             .getScripting()
+                             .on("Job.Stopped", params);
+            }
+            catch (Exception e) {
+            	// TODO: Czaro Fill Exception
+            }
+            
+            
+            
         }
         else if (state == State.Running) {
             startPauseResumeJobAction.setEnabled(true);
