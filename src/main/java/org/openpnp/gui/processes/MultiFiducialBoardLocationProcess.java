@@ -423,6 +423,15 @@ public class MultiFiducialBoardLocationProcess {
         boardLocation.setLocation(savedBoardLocation);
         boardLocation.setPlacementTransform(savedPlacementTransform);
         isCancelled = true;
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            Configuration.get()
+                         .getScripting()
+                         .on("Job.Abort", params);
+        }
+        catch (Exception e) {
+        	// TODO: Czaro Fill Exception
+        }
     }
 
     private final ActionListener proceedActionListener = new ActionListener() {
