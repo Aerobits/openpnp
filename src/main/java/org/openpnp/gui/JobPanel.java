@@ -1143,6 +1143,17 @@ public class JobPanel extends JPanel {
             UiUtils.messageBoxOnException(() -> {
                 setState(State.Stopping);
                 jobAbort();
+                try {
+                    HashMap<String, Object> params = new HashMap<>();
+                    params.put("job", job);
+                    params.put("jobProcessor", this);
+                    Configuration.get()
+                                 .getScripting()
+                                 .on("Job.Abort", params);
+                }
+                catch (Exception e) {
+                	// TODO: Czaro Fill Exception
+                }
             });
         }
     };
