@@ -90,8 +90,8 @@ public class MachineControlsPanel extends JPanel {
 
     private Location markLocation = null;
 
-    private Color droNormalColor = new Color(0xBDFFBE);
-    private Color droSavedColor = new Color(0x90cce0);
+    private Color droNormalColor = new Color(0x1E5E08);
+    private Color droSavedColor = new Color(0x113BC5);
     
     /**
      * Create the panel.

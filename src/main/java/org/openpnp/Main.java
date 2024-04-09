@@ -133,7 +133,7 @@ public class Main {
         }
 
         File configurationDirectory = new File(System.getProperty("user.home"));
-        configurationDirectory = new File(configurationDirectory, ".openpnp2");
+        configurationDirectory = new File(configurationDirectory, ".openpnp2_lightplacer");
 
         if (System.getProperty("configDir") != null) {
             configurationDirectory = new File(System.getProperty("configDir"));
