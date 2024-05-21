@@ -1,6 +1,8 @@
 package org.openpnp.util;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.AffineTransformOp;
+import java.awt.geom.AffineTransform;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import com.google.zxing.MultiFormatReader;
 import com.google.zxing.Result;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
+
 
 public class VisionUtils {
     public static String PIPELINE_RESULTS_NAME = "results";
@@ -194,6 +197,28 @@ public class VisionUtils {
      */
     public static String scanBarcode(Camera camera) throws Exception {
         BufferedImage image = camera.lightSettleAndCapture();
+        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
+                new BufferedImageLuminanceSource(image)));
+        try {
+            Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap);
+            return qrCodeResult.getText();    
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+    
+    public static String scanBarcode(Camera camera, Boolean flipped) throws Exception {
+        BufferedImage image = camera.lightSettleAndCapture();
+        
+        if(flipped==true) {
+        	BufferedImage imageTmp = image;
+        	// Flip the image horizontally
+        	AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
+            tx.translate(-imageTmp.getWidth(null), 0);
+            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+            image = op.filter(imageTmp, null);
+        }
         BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
                 new BufferedImageLuminanceSource(image)));
         try {
