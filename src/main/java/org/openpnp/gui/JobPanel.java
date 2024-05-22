@@ -751,7 +751,7 @@ public class JobPanel extends JPanel {
                 params.put("jobProcessor", this);
                 Configuration.get()
                              .getScripting()
-                             .on("Job.Finished", params);
+                             .on("Job.Stopped", params);
             }
             catch (Exception e) {
             	// TODO: Czaro Fill Exception
