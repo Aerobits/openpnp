@@ -1,8 +1,6 @@
 package org.openpnp.util;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.AffineTransformOp;
-import java.awt.geom.AffineTransform;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -207,29 +205,7 @@ public class VisionUtils {
             return null;
         }
     }
-    
-    public static String scanBarcode(Camera camera, Boolean flipped) throws Exception {
-        BufferedImage image = camera.lightSettleAndCapture();
-        
-        if(flipped==true) {
-        	BufferedImage imageTmp = image;
-        	// Flip the image horizontally
-        	AffineTransform tx = AffineTransform.getScaleInstance(-1, 1);
-            tx.translate(-imageTmp.getWidth(null), 0);
-            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-            image = op.filter(imageTmp, null);
-        }
-        BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
-                new BufferedImageLuminanceSource(image)));
-        try {
-            Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap);
-            return qrCodeResult.getText();    
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-    
+
     public static PartAlignment.PartAlignmentOffset findPartAlignmentOffsets(PartAlignment p, Part part, BoardLocation boardLocation, Location placementLocation, Nozzle nozzle) throws Exception {
         try {
             Map<String, Object> globals = new HashMap<>();
