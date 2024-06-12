@@ -22,10 +22,12 @@ package org.openpnp.gui.support;
 import java.awt.Component;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
 
 import javax.swing.JOptionPane;
 
 import org.openpnp.gui.MainFrame;
+import org.openpnp.model.Configuration;
 import org.pmw.tinylog.Logger;
 
 public class MessageBoxes {
@@ -47,12 +49,34 @@ public class MessageBoxes {
             message = "No message supplied.";
         }
         Logger.debug("{}: {}", title, cause);
+        
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("title", title);
+            params.put("message", message);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.play", params);
+        }
+        catch (Exception e2) {
+        }
+        
         message = message.replaceAll("\n", "<br/>");
         message = message.replaceAll("\r", "");
         message = message.replaceAll("<", "&lt;");
         message = message.replaceAll(">", "&gt;");
         message = "<html><body width=\"400\">" + message + "</body></html>";
+    	
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("stop", true);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.stop", params);
+        }
+        catch (Exception e2) {
+        }
     }
 
     public static void errorBox(Component parent, String title, String message) {
@@ -60,10 +84,31 @@ public class MessageBoxes {
             message = "";
         }
         Logger.debug("{}: {}", title, message);
+        
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("title", title);
+            params.put("message", message);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.play", params);
+        }
+        catch (Exception e2) {
+        }
+        
         message = message.replaceAll("\n", "<br/>");
         message = message.replaceAll("\r", "");
         message = "<html><body width=\"400\">" + message + "</body></html>";
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.ERROR_MESSAGE);
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("stop", true);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.stop", params);
+        }
+        catch (Exception e2) {
+        }
     }
 
     public static boolean errorBoxWithRetry(Component parent, String title, String message) {
@@ -81,6 +126,18 @@ public class MessageBoxes {
         if (message == null) {
             message = "";
         }
+        
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("title", title);
+            params.put("message", message);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.play", params);
+        }
+        catch (Exception e2) {
+        }
+        
         message = message.replaceAll("\n", "<br/>");
         message = message.replaceAll("\r", "");
         message = "<html><body width=\"400\">" + message + "</body></html>";
@@ -91,10 +148,31 @@ public class MessageBoxes {
         if (message == null) {
             message = "";
         }
+                
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("title", title);
+            params.put("message", message);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.play", params);
+        }
+        catch (Exception e2) {
+        }
+        
         message = message.replaceAll("\n", "<br/>");
         message = message.replaceAll("\r", "");
         message = "<html><body width=\"400\">" + message + "</body></html>";
         int ret = JOptionPane.showConfirmDialog(MainFrame.get(), message, title, JOptionPane.WARNING_MESSAGE);
+        try {
+            HashMap<String, Object> params = new HashMap<>();
+            params.put("stop", true);
+            Configuration.get()
+                         .getScripting()
+                         .on("Sound.stop", params);
+        }
+        catch (Exception e2) {
+        }
         if (ret == JOptionPane.OK_OPTION) {
         	return true;
         } else {
