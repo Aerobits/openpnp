@@ -1248,8 +1248,9 @@ public class GcodeDriver extends AbstractReferenceDriver implements Named {
         reportedLocationsQueue.add(position);
 
         if (motionPending) {
-            Logger.warn("Position report cannot be processed when motion might still be pending. Missing Machine Coordination on Actuators?", 
-                    position);
+            //Logger.warn("Position report cannot be processed when motion might still be pending. Missing Machine Coordination on Actuators?", 
+            //        position);
+        	
         }
         else {
             // Store the actual driver location. This is used to re-sync OpenPnP to the actual controller 
