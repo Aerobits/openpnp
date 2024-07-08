@@ -276,6 +276,8 @@ public class AbstractReferenceDriverConfigurationWizard extends AbstractConfigur
                     exists = true;
                 }
             }
+            comboBoxPort.addItem("ttyTinyG");
+            comboBoxPort.addItem("ttyServo");
             if (!exists && driver.getPortName() != null) {
                 comboBoxPort.addItem(driver.getPortName());
             }
