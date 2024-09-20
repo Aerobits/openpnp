@@ -1,19 +1,19 @@
 /*
  * Copyright (C) 2011 Jason von Nieda <jason@vonnieda.org>
- * 
+ *
  * This file is part of OpenPnP.
- * 
+ *
  * OpenPnP is free software: you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * OpenPnP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with OpenPnP. If not, see
  * <http://www.gnu.org/licenses/>.
- * 
+ *
  * For more information about OpenPnP visit http://openpnp.org
  */
 
@@ -42,7 +42,7 @@ import javassist.NotFoundException;
 
 /**
  * Start with -Xdock:name=OpenPnP on Mac to make it prettier.
- * 
+ *
  * @author jason
  *
  */
@@ -50,7 +50,7 @@ public class Main {
     public static String getVersion() {
         String version = Main.class.getPackage().getImplementationVersion();
         if (version == null) {
-            version = "INTERNAL BUILD";
+            version = "INTERNAL BUILD - Vision Suspended Release";
         }
         return version;
     }
@@ -73,7 +73,7 @@ public class Main {
         System.setOut(out);
         System.setErr(err);
     }
-    
+
     private static void monkeyPatchBeansBinding() {
         // This hack fixes a bug in BeansBinding that will never be released due to to the library
         // being abandoned. The bug is that in BeansBinding.bind, it chooses to call an uncached
@@ -115,14 +115,14 @@ public class Main {
 
     public static void main(String[] args) {
         monkeyPatchBeansBinding();
-        
+
         for (String s : args) {
             if (s.equals("--version")) {
                 System.out.println(getVersion());
                 System.exit(0);
             }
         }
-        
+
         // http://developer.apple.com/library/mac/#documentation/Java/Conceptual/Java14Development/07-NativePlatformIntegration/NativePlatformIntegration.html#//apple_ref/doc/uid/TP40001909-212952-TPXREF134
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         try {

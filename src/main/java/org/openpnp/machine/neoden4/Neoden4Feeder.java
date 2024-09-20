@@ -6,6 +6,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.lang.Math;
 
 import javax.imageio.ImageIO;
 import javax.swing.Action;
@@ -25,14 +27,9 @@ import org.openpnp.spi.Nozzle;
 import org.openpnp.spi.PropertySheetHolder;
 import org.openpnp.spi.VisionProvider;
 import org.pmw.tinylog.Logger;
-import org.python.antlr.PythonParser.return_stmt_return;
-import org.python.antlr.base.boolop;
-import org.python.modules.thread.thread;
 import org.simpleframework.xml.Attribute;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.core.Persist;
-
-import jnr.ffi.types.int8_t;
 
 
 public class Neoden4Feeder extends ReferenceFeeder {
@@ -68,17 +65,36 @@ public class Neoden4Feeder extends ReferenceFeeder {
      */
     protected Location visionOffset;
 
+    protected ArrayList<Location> lVisionOffsets = new ArrayList<Location>();
+
+    protected Location meanVisionOffset = new Location(null);
+
+    protected Boolean skipVisionAlignment = new Boolean(false);
+
+    public void ResetVisionSuspension(){
+        skipVisionAlignment = false;
+        lVisionOffsets = new ArrayList<Location>();
+        meanVisionOffset = new Location(null);
+        Logger.info("Vision suspension is turn Off for feeder: {}. Reason: misdetects on Bottom Vision.", actuatorName);
+    }
+
     @Override
     public Location getPickLocation() throws Exception {
-//        if (pickLocation == null) {
-            pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
-//        }
-
+        pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
         if (vision.isEnabled() && visionOffset != null) {
 			return pickLocation.subtract(visionOffset);
         }
-
+        if (skipVisionAlignment && meanVisionOffset!=null){
+            return pickLocation.subtract(meanVisionOffset);
+        }
         return pickLocation;
+    }
+
+    private double getOndDimOffset(Location location){
+        double disX = location.getX();
+        double disY = location.getY();
+        double offsetDistance = Math.sqrt(disX*disX + disY*disY);
+        return offsetDistance;
     }
 
     @Override
@@ -100,19 +116,45 @@ public class Neoden4Feeder extends ReferenceFeeder {
         // Actuate actuator
     	actuator.actuate(getPart().getPitchInTape());
 
-    	// Calculate vision offset
+        // CZARO: Check last offset distances - Calulation skipvision formula
+        if (lVisionOffsets.size()>=suspendTries && !skipVisionAlignment){
+            double sum = 0.0;
+            Location sumLocation = new Location(LengthUnit.Millimeters, 0,0,0,0);
+            for (int i=-suspendTries;i<0;i++) {
+                sum += getOndDimOffset(lVisionOffsets.get(lVisionOffsets.size()+i));
+                sumLocation = sumLocation.add(lVisionOffsets.get(lVisionOffsets.size()+i));
+            }
+            double mean = sum/suspendTries;
+            Logger.debug("Mean from {} last measurements: {} mm.",suspendTries, mean);
 
+            double x= sumLocation.getX()/suspendTries;
+            double y=sumLocation.getY()/suspendTries;
+            double z=sumLocation.getZ()/suspendTries;
+            double rot=sumLocation.getRotation()/suspendTries;
+            meanVisionOffset = new Location(LengthUnit.Millimeters, x,y,z,rot);
+            Logger.info("{}: Mean location from {} last measurements: {}.",actuatorName, suspendTries, meanVisionOffset);
 
-        if (vision.isEnabled()) {
-        	try {
-        		visionOffset = getVisionOffsets(head, location);
-                Logger.debug("final visionOffsets " + visionOffset);
-                Logger.debug("Modified pickLocation {}", getPickLocation());
-        	} catch (Exception e) {
-
-			}
+            if (mean<suspendThreshold/1000 && suspendState){
+                skipVisionAlignment = true;
+                Logger.info("Vision offset calibration are now suspended for feeder: {}!", actuatorName);
+            }
+            else{
+                skipVisionAlignment = false;
+            }
         }
 
+        // Calculate vision offset
+        if (vision.isEnabled() && !skipVisionAlignment) {
+        	try {
+        		visionOffset = getVisionOffsets(head, location);
+                lVisionOffsets.add(visionOffset);
+                Logger.debug("{}: Offset distance {} mm added to table, table length: {}.", actuatorName, getOndDimOffset(visionOffset), lVisionOffsets.size());
+                Logger.debug("{}: final visionOffsets {}", actuatorName, visionOffset);
+                Logger.debug("{}: Modified pickLocation {}",actuatorName, getPickLocation());
+        	} catch (Exception e) {
+                Logger.warn("WARNING: {}", e);
+			}
+        }
         setFeedCount(getFeedCount() + 1);
     }
 
