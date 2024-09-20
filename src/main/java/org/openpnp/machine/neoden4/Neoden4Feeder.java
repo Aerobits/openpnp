@@ -75,17 +75,20 @@ public class Neoden4Feeder extends ReferenceFeeder {
         skipVisionAlignment = false;
         lVisionOffsets = new ArrayList<Location>();
         meanVisionOffset = new Location(null);
-        Logger.info("Vision suspension is turn Off for feeder: {}. Reason: misdetects on Bottom Vision.", actuatorName);
     }
 
     @Override
     public Location getPickLocation() throws Exception {
         pickLocation = location.derive(null, null, null, location.getRotation() + getPart().getRotationInTape());
         if (vision.isEnabled() && visionOffset != null) {
-			return pickLocation.subtract(visionOffset);
-        }
-        if (skipVisionAlignment && meanVisionOffset!=null){
-            return pickLocation.subtract(meanVisionOffset);
+            Location newPickLocation = pickLocation;
+            if (suspendState && skipVisionAlignment && meanVisionOffset!=null){
+                newPickLocation = newPickLocation.subtract(meanVisionOffset);
+            }
+            else {
+                newPickLocation = newPickLocation.subtract(visionOffset);
+            }
+            return newPickLocation;
         }
         return pickLocation;
     }
@@ -117,6 +120,9 @@ public class Neoden4Feeder extends ReferenceFeeder {
     	actuator.actuate(getPart().getPitchInTape());
 
         // CZARO: Check last offset distances - Calulation skipvision formula
+        if (!suspendState){
+            ResetVisionSuspension();
+        }
         if (lVisionOffsets.size()>=suspendTries && !skipVisionAlignment){
             double sum = 0.0;
             Location sumLocation = new Location(LengthUnit.Millimeters, 0,0,0,0);
@@ -139,12 +145,12 @@ public class Neoden4Feeder extends ReferenceFeeder {
                 Logger.info("Vision offset calibration are now suspended for feeder: {}!", actuatorName);
             }
             else{
-                skipVisionAlignment = false;
+                ResetVisionSuspension();
             }
         }
 
         // Calculate vision offset
-        if (vision.isEnabled() && !skipVisionAlignment) {
+        if ((vision.isEnabled() && !skipVisionAlignment)||(vision.isEnabled() && !suspendState)) {
         	try {
         		visionOffset = getVisionOffsets(head, location);
                 lVisionOffsets.add(visionOffset);

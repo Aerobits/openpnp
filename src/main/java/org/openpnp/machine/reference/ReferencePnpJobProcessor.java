@@ -721,6 +721,7 @@ public class ReferencePnpJobProcessor extends AbstractPnpJobProcessor {
                     // Reset Vision Suspension after one fail in bottom Vision detection
                     if (placement.getPart().failNumber>0){
                         feeder.ResetVisionSuspension();
+                        Logger.info("Vision suspension is turn Off for feeder: {}. Reason: misdetects on Bottom Vision.", feeder.getName());
                     }
                     feeder.feed(nozzle);
                     return;
