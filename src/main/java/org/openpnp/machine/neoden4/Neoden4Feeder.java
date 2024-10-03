@@ -140,7 +140,7 @@ public class Neoden4Feeder extends ReferenceFeeder {
             meanVisionOffset = new Location(LengthUnit.Millimeters, x,y,z,rot);
             Logger.info("{}: Mean location from {} last measurements: {}.",actuatorName, suspendTries, meanVisionOffset);
 
-            if (mean<suspendThreshold/1000 && suspendState){
+            if (mean*1000<suspendThreshold && suspendState){
                 skipVisionAlignment = true;
                 Logger.info("Vision offset calibration are now suspended for feeder: {}!", actuatorName);
             }
