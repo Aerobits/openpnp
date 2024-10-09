@@ -45,7 +45,6 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
-import com.l2fprod.common.util.converter.BooleanConverter;
 
 @SuppressWarnings("serial")
 public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederConfigurationWizard {
@@ -190,7 +189,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         suspendPanel.add(lblSuspendPart2, "8, 2");
 
         suspendThreshold = new JTextField();
-        suspendThreshold.setText("10");
+        suspendThreshold.setText("300");
         suspendThreshold.setColumns(3);
         suspendPanel.add(suspendThreshold, "10, 2");
 

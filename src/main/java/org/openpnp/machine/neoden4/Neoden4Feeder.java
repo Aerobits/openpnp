@@ -52,7 +52,7 @@ public class Neoden4Feeder extends ReferenceFeeder {
     private int suspendTries = 3;
 
     @Attribute(required = false)
-    private int suspendThreshold = 10;
+    private int suspendThreshold = 300;
 
     @Element(required = false)
     protected Vision vision = new Vision();
