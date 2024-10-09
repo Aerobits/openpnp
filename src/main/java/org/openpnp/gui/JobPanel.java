@@ -1,19 +1,19 @@
 /*
  * Copyright (C) 2011 Jason von Nieda <jason@vonnieda.org>
- * 
+ *
  * This file is part of OpenPnP.
- * 
+ *
  * OpenPnP is free software: you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * OpenPnP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
  * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with OpenPnP. If not, see
  * <http://www.gnu.org/licenses/>.
- * 
+ *
  * For more information about OpenPnP visit http://openpnp.org
  */
 
@@ -60,7 +60,6 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -73,7 +72,6 @@ import org.openpnp.Translations;
 import org.openpnp.events.BoardLocationSelectedEvent;
 import org.openpnp.events.JobLoadedEvent;
 import org.openpnp.events.PlacementSelectedEvent;
-import org.openpnp.gui.JobPlacementsPanel.TypeRenderer;
 import org.openpnp.gui.components.AutoSelectTextTable;
 import org.openpnp.gui.importer.BoardImporter;
 import org.openpnp.gui.panelization.DlgAutoPanelize;
@@ -114,7 +112,7 @@ public class JobPanel extends JPanel {
         Pausing,
         Stopping
     }
-    
+
     final private Configuration configuration;
     final private MainFrame frame;
 
@@ -144,9 +142,9 @@ public class JobPanel extends JPanel {
     private Job job;
 
     private JobProcessor jobProcessor;
-    
+
     private State state = State.Stopped;
-    
+
     // try https://tips4java.wordpress.com/2010/01/24/table-row-rendering/ to show affine transform set
 
     public JobPanel(Configuration configuration, MainFrame frame) {
@@ -160,11 +158,11 @@ public class JobPanel extends JPanel {
                         twoPointLocateBoardLocationAction, panelizeAction,
                         setEnabledAction,setCheckFidsAction, setSideAction);
         singleSelectionActionGroup.setEnabled(false);
-        
-        multiSelectionActionGroup = new ActionGroup(removeBoardAction, setEnabledAction, 
+
+        multiSelectionActionGroup = new ActionGroup(removeBoardAction, setEnabledAction,
         				setCheckFidsAction, setSideAction, twoPointLocateBoardLocationAction);
         multiSelectionActionGroup.setEnabled(false);
-        
+
         panelizeXOutAction.setEnabled(false);
         panelizeFiducialCheck.setEnabled(false);
         tableModel = new BoardLocationsTableModel(configuration);
@@ -202,21 +200,21 @@ public class JobPanel extends JPanel {
         table.getRowSorter().toggleSortOrder(10);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         table.setDefaultEditor(Side.class, new DefaultCellEditor(sidesComboBox));
-        
+
         // Draw red background if board did not check fiducials
 		table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
 					boolean hasFocus, int row, int col) {
-				
+
 				// Highlight x,y,z,rotation depending on applied transform:
 				// - if board has active transform: green
 				// - if board has not active transform: red
 				int sortedRow = table.convertRowIndexToModel(row);
 				BoardLocation boardLocation = tableModel.getBoardLocation(sortedRow);
 				boolean isPlacementsTransformed = boardLocation.getPlacementTransform() != null;
-				
+
 				if ((col == 4 || col == 5 || col == 6 || col == 7)) {
 					if (isPlacementsTransformed) {
 						this.setForeground(Color.black);
@@ -229,9 +227,9 @@ public class JobPanel extends JPanel {
 					this.setBackground(table.getBackground());
 					this.setForeground(table.getForeground());
 				}
-				
+
 				super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
-				
+
 
 				// Set font bold if boardLocation is last active boardLocation
 				// last active -> set during Job.Placement.Starting
@@ -241,7 +239,7 @@ public class JobPanel extends JPanel {
 				} else {
 					this.setFont(this.getFont().deriveFont(Font.PLAIN));
 				}
-				
+
 
 				return this;
 			}
@@ -287,7 +285,7 @@ public class JobPanel extends JPanel {
                 });
             }
         });
-        
+
         table.getSelectionModel()
                 .addListSelectionListener(new ListSelectionListener() {
                     @Override
@@ -295,7 +293,7 @@ public class JobPanel extends JPanel {
                         if (e.getValueIsAdjusting()) {
                             return;
                         }
-                        
+
                         List<BoardLocation> selections = getSelections();
                         if (selections.size() == 0) {
                             singleSelectionActionGroup.setEnabled(false);
@@ -373,9 +371,9 @@ public class JobPanel extends JPanel {
         JButton btnRemoveBoard = new JButton(removeBoardAction);
         btnRemoveBoard.setHideActionText(true);
         toolBarBoards.add(btnRemoveBoard);
-        
+
         toolBarBoards.addSeparator();
-        
+
         JButton btnPositionCameraBoardLocation = new JButton(moveCameraToBoardLocationAction);
         btnPositionCameraBoardLocation.setHideActionText(true);
         toolBarBoards.add(btnPositionCameraBoardLocation);
@@ -384,11 +382,11 @@ public class JobPanel extends JPanel {
                 new JButton(moveCameraToBoardLocationNextAction);
         btnPositionCameraBoardLocationNext.setHideActionText(true);
         toolBarBoards.add(btnPositionCameraBoardLocationNext);
-        
+
         JButton btnPositionToolBoardLocation = new JButton(moveToolToBoardLocationAction);
         btnPositionToolBoardLocation.setHideActionText(true);
         toolBarBoards.add(btnPositionToolBoardLocation);
-        
+
         toolBarBoards.addSeparator();
 
         JButton btnCaptureCameraBoardLocation = new JButton(captureCameraBoardLocationAction);
@@ -399,7 +397,7 @@ public class JobPanel extends JPanel {
         btnCaptureToolBoardLocation.setHideActionText(true);
         toolBarBoards.add(btnCaptureToolBoardLocation);
 
-        
+
         toolBarBoards.addSeparator();
 
         JButton btnTwoPointBoardLocation = new JButton(twoPointLocateBoardLocationAction);
@@ -475,12 +473,12 @@ public class JobPanel extends JPanel {
 
         Configuration.get().getBus().register(this);
     }
-    
+
     void setState(State newState) {
         this.state = newState;
         updateJobActions();
     }
-    
+
     public JTable getBoardLocationsTable() {
         return table;
     }
@@ -616,12 +614,12 @@ public class JobPanel extends JPanel {
         }
         return selections;
     }
-    
+
 
     /**
      * Checks if there are any modifications that need to be saved. Prompts the user if there are.
      * Returns true if it's okay to exit.
-     * 
+     *
      * @return
      */
     public boolean checkForModifications() {
@@ -790,7 +788,7 @@ public class JobPanel extends JPanel {
                 (job.getFile() == null ? UNTITLED_JOB_FILENAME : job.getFile().getName()));
         frame.setTitle(title);
     }
-    
+
     private boolean checkJobStopped() {
         if (state != State.Stopped) {
             MessageBoxes.errorBox(this, "Error", "Job must be stopped first."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -930,12 +928,12 @@ public class JobPanel extends JPanel {
     /**
      * Initialize the job processor and start the run thread. The run thread will run one step and
      * then either loop if the state is Running or exit if the state is Stepping.
-     * 
+     *
      * @throws Exception
      */
     public void jobStart() throws Exception {
         jobProcessor = Configuration.get().getMachine().getPnpJobProcessor();
-        
+
         if (isAllPlaced()) {
             int ret = JOptionPane.showConfirmDialog(getTopLevelAncestor(),
                     "All placements have been placed already. Reset all placements before starting job?", //$NON-NLS-1$
@@ -948,7 +946,7 @@ public class JobPanel extends JPanel {
                 jobPlacementsPanel.refresh();
             }
         }
-        
+
         if (!isAllFiducialChecked()) {
         	int ret = JOptionPane.showConfirmDialog(getTopLevelAncestor(),
         			"Not all boards in current job are fiducial checked. Do you want to run job anyway?",
@@ -960,11 +958,11 @@ public class JobPanel extends JPanel {
             	return;
             }
         }
-        
+
         jobProcessor.initialize(job);
         jobRun();
     }
-    
+
     public void jobRun() {
         UiUtils.submitUiMachineTask(() -> {
             do {
@@ -972,7 +970,7 @@ public class JobPanel extends JPanel {
                     setState(State.Stopped);
                 }
             } while (state == State.Running);
-            
+
             if (state == State.Pausing) {
                 setState(State.Paused);
             }
@@ -988,7 +986,7 @@ public class JobPanel extends JPanel {
              * both dispense and PnP this is not possible. Once dispense is removed we can include
              * the current placement in the thrown error and add this feature.
              */
-            
+
             MessageBoxes.errorBox(getTopLevelAncestor(), "Job Error", t.getMessage());
             if (state == State.Running || state == State.Pausing) {
                 setState(State.Paused);
@@ -1010,15 +1008,15 @@ public class JobPanel extends JPanel {
             setState(State.Stopped);
         });
     }
-    
+
     private void updatePanelizationIconState() {
     	// If more than board is in the job list, then autopanelize isn't allowed
         if (getJob().isUsingPanel() == false && table.getRowCount() > 1){
         	panelizeAction.setEnabled(false);
         	panelizeFiducialCheck.setEnabled(false);
-            panelizeXOutAction.setEnabled(false);	
+            panelizeXOutAction.setEnabled(false);
         }
-        
+
         if (getJob().getBoardLocations() == null) {
             panelizeFiducialCheck.setEnabled(false);
             panelizeXOutAction.setEnabled(false);
@@ -1030,7 +1028,7 @@ public class JobPanel extends JPanel {
             panelizeFiducialCheck.setEnabled(false);
             panelizeXOutAction.setEnabled(false);
             addNewBoardAction.setEnabled(true);
-            addBoardAction.setEnabled(true);            
+            addBoardAction.setEnabled(true);
         }
         else {
             addNewBoardAction.setEnabled(false);
@@ -1131,7 +1129,7 @@ public class JobPanel extends JPanel {
             });
         }
     };
-    
+
     public final Action resetAllPlacedAction = new AbstractAction() {
         {
             putValue(NAME, Translations.getString("JobPanel.Action.Job.ResetAllPlaced")); //$NON-NLS-1$
@@ -1355,7 +1353,7 @@ public class JobPanel extends JPanel {
                         Location location = getSelection().getLocation();
                         MovableUtils.moveToLocationAtSafeZ(camera, location);
                         MovableUtils.fireTargetedUserAction(camera);
-                       
+
                         try {
                             Map<String, Object> globals = new HashMap<>();
                             globals.put("camera", camera);
@@ -1416,7 +1414,7 @@ public class JobPanel extends JPanel {
                 BoardLocation boardLocation = getSelection();
                 Location location = Configuration.get().getMachine().getFiducialLocator()
                         .locateBoard(boardLocation);
-                
+
                 /**
                  * Set the board's location to the one returned from the fiducial check. We have
                  * to store and restore the placement transform because setting the location
@@ -1426,7 +1424,7 @@ public class JobPanel extends JPanel {
                 boardLocation.setLocation(location);
                 boardLocation.setPlacementTransform(tx);
                 refreshSelectedRow();
-                
+
                 /**
                  * Move the camera to the calculated position.
                  */
@@ -1500,7 +1498,7 @@ public class JobPanel extends JPanel {
         }
 
     };
-    
+
     public final Action setEnabledAction = new AbstractAction() {
         {
             putValue(NAME, "Set Enabled");
@@ -1556,7 +1554,7 @@ public class JobPanel extends JPanel {
             }
         }
     };
-    
+
     public final Action setSideAction = new AbstractAction() {
         {
             putValue(NAME, "Set Side");
@@ -1584,7 +1582,7 @@ public class JobPanel extends JPanel {
             jobPlacementsPanel.setBoardLocation(getSelection());
         }
     };
-    
+
     public class OpenRecentJobAction extends AbstractAction {
         private final File file;
 
@@ -1641,7 +1639,7 @@ public class JobPanel extends JPanel {
         // Would be better to have property notifiers but this is going to have to do for now.
         repaint();
     };
-    
+
 
     boolean isAllFiducialChecked() {
     	for (BoardLocation boardLocation : job.getBoardLocations()) {
@@ -1651,7 +1649,7 @@ public class JobPanel extends JPanel {
     	}
     	return true;
     }
-        
+
     boolean isAllPlaced() {
     	for (BoardLocation boardLocation : job.getBoardLocations()) {
     	    if (!boardLocation.isEnabled()) {

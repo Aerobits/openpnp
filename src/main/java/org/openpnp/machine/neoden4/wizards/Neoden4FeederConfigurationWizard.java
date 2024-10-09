@@ -40,8 +40,6 @@ import org.openpnp.model.Configuration;
 import org.openpnp.spi.Actuator;
 import org.openpnp.spi.Camera;
 import org.openpnp.util.UiUtils;
-import org.openpnp.util.VisionUtils;
-import org.python.modules.thread.thread;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
@@ -82,13 +80,20 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     private JPanel panel;
     private JButton btnCancelChangeTemplateImage;
     private JButton btnResetVisionOffsets;
-    
+    private JPanel suspendPanel;
+	private JLabel lblSuspendPart1;
+    private JCheckBox suspendCalib;
+    private JLabel lblSuspendPart2;
+	private JLabel lblSuspendPart3;
+    private JTextField suspendTries;
+	private JTextField suspendThreshold;
+
     public Neoden4FeederConfigurationWizard(Neoden4Feeder feeder) {
     	super(feeder, true, true);
         this.feeder = feeder;
 
-        
-        
+
+
         JPanel panelFields = new JPanel();
         panelFields.setLayout(new BoxLayout(panelFields, BoxLayout.Y_AXIS));
 
@@ -107,25 +112,25 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,
                         FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC,}));
 
-        
+
         lblActuatorId = new JLabel("Actuator Name");
         panelOther.add(lblActuatorId, "2, 2, right, default");
 
         textFieldActuatorId = new JTextField();
         panelOther.add(textFieldActuatorId, "4, 2");
         textFieldActuatorId.setColumns(5);
-        
+
         btnActuateFeeder = new JButton(actuateFeederAction);
         panelOther.add(btnActuateFeeder, "6, 2");
         btnActuateFeeder.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblFeedCount = new JLabel("Feed Count");
         panelOther.add(lblFeedCount, "2, 4, right, default");
-        
+
         textFieldFeedCount = new JTextField();
         panelOther.add(textFieldFeedCount, "4, 4, fill, default");
         textFieldFeedCount.setColumns(10);
-        
+
 
         JButton btnResetFeedCount = new JButton(new AbstractAction("Reset") {
             @Override
@@ -135,14 +140,14 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         });
         btnResetFeedCount.setHorizontalAlignment(SwingConstants.LEFT);
         panelOther.add(btnResetFeedCount, "6, 4, left, default");
-        
+
         JLabel lblDiscardCount = new JLabel("Discard Count");
         panelOther.add(lblDiscardCount, "2, 6, right, default");
-        
+
         textFieldDiscardCount = new JTextField();
         panelOther.add(textFieldDiscardCount, "4, 6, fill, default");
         textFieldDiscardCount.setColumns(10);
-        
+
         JButton btnResetDiscardCount = new JButton(new AbstractAction("Reset") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -151,7 +156,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         });
         btnResetDiscardCount.setHorizontalAlignment(SwingConstants.LEFT);
         panelOther.add(btnResetDiscardCount, "6, 6, left, default");
-       
+
         //
         panelVision = new JPanel();
         panelVision.setBorder(new TitledBorder(null, "Vision", TitledBorder.LEADING,
@@ -166,6 +171,36 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
 
         chckbxVisionEnabled = new JCheckBox("Vision Enabled?");
         panelVisionEnabled.add(chckbxVisionEnabled);
+
+        // ------- Suspend Calibration -------------
+        suspendPanel = new JPanel();
+        suspendCalib = new JCheckBox();
+        suspendPanel.add(suspendCalib, "2, 2, left, default");
+
+        lblSuspendPart1 = new JLabel("Suspend vision alignment after");
+        suspendPanel.add(lblSuspendPart1, "4, 2, right, default");
+
+        suspendTries = new JTextField();
+        suspendTries.setText("3");
+        suspendTries.setColumns(3);
+        suspendPanel.add(suspendTries, "6, 2");
+
+        lblSuspendPart2 = new JLabel("successfully part position detection with correction below threshold");
+        suspendPanel.add(lblSuspendPart2, "8, 2");
+
+        suspendThreshold = new JTextField();
+        suspendThreshold.setText("300");
+        suspendThreshold.setColumns(3);
+        suspendPanel.add(suspendThreshold, "10, 2");
+
+        lblSuspendPart3 = new JLabel("um.");
+        suspendPanel.add(lblSuspendPart3, "12, 2, right, default");
+
+
+        panelVisionEnabled.add(suspendPanel, "2, 4, left, default");
+        // -----------------------------------------
+
+
 
         separator = new JSeparator();
         panelVision.add(separator);
@@ -272,14 +307,14 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
     @Override
     public void createBindings() {
         super.createBindings();
-        
+
         IntegerConverter intConverter = new IntegerConverter();
         BufferedImageIconConverter imageConverter = new BufferedImageIconConverter();
-        
+
         addWrappedBinding(feeder, "actuatorName", textFieldActuatorId, "text");
         addWrappedBinding(feeder, "feedCount", textFieldFeedCount, "text", intConverter);
         addWrappedBinding(feeder, "discardCount", textFieldDiscardCount, "text", intConverter);
-        
+
         addWrappedBinding(feeder, "vision.enabled", chckbxVisionEnabled, "selected");
         addWrappedBinding(feeder, "vision.templateImage", labelTemplateImage, "icon", imageConverter);
 
@@ -287,7 +322,11 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
         addWrappedBinding(feeder, "vision.areaOfInterest.y", textFieldAoiY, "text", intConverter);
         addWrappedBinding(feeder, "vision.areaOfInterest.width", textFieldAoiWidth, "text", intConverter);
         addWrappedBinding(feeder, "vision.areaOfInterest.height", textFieldAoiHeight, "text", intConverter);
-        
+
+        addWrappedBinding(feeder, "suspendTries", suspendTries, "text", intConverter);
+        addWrappedBinding(feeder, "suspendThreshold", suspendThreshold, "text", intConverter);
+        addWrappedBinding(feeder, "suspendState", suspendCalib, "selected");
+
         ComponentDecorators.decorateWithAutoSelect(textFieldActuatorId);
         ComponentDecorators.decorateWithAutoSelect(textFieldFeedCount);
         ComponentDecorators.decorateWithAutoSelect(textFieldDiscardCount);
@@ -309,15 +348,9 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
                 CameraView cameraView = MainFrame.get().getCameraViews().setSelectedCamera(camera);
 
                 cameraView.setSelectionEnabled(true);
-                // org.openpnp.model.Rectangle r =
-                // feeder.getVision().getTemplateImageCoordinates();
                 org.openpnp.model.Rectangle r = null;
                 if (r == null || r.getWidth() == 0 || r.getHeight() == 0) {
                     cameraView.setSelection(0, 0, 100, 100);
-                }
-                else {
-                    // cameraView.setSelection(r.getLeft(), r.getTop(),
-                    // r.getWidth(), r.getHeight());
                 }
                 btnChangeTemplateImage.setAction(confirmSelectTemplateImageAction);
                 cancelSelectTemplateImageAction.setEnabled(true);
@@ -400,7 +433,7 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
 			});
 		}
 	};
-	
+
     private Action selectAoiAction = new AbstractAction("Select") {
         @Override
         public void actionPerformed(ActionEvent arg0) {
@@ -420,9 +453,9 @@ public class Neoden4FeederConfigurationWizard extends AbstractReferenceFeederCon
 				else {
 					// Convert coordinate origin back to top left
 					cameraView.setSelection(
-							r.getX() + (camera.getHeight() / 2), 
-							r.getY() + (camera.getHeight() / 2), 
-							r.getWidth(), 
+							r.getX() + (camera.getHeight() / 2),
+							r.getY() + (camera.getHeight() / 2),
+							r.getWidth(),
 							r.getHeight());
 				}
 			});
