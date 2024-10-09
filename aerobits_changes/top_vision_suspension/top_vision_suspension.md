@@ -1,8 +1,4 @@
-# Changes in Aerobits OpenPnP
-
-2024.10.09 - Czaro added new functionality
-
-## Top vision suspension per feeder
+# Top vision suspension per feeder
 
 For Neoden4Feeder was added option for suspend Top Vision component position correction.
 
